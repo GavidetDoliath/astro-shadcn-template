@@ -1,0 +1,728 @@
+---
+// src/pages/lettres/[slug].astro
+// Page article détaillée avec ToC, reading time, etc.
+
+import { supabase } from '@/db/supabase';
+import { getArticles, getArticlesByCategory, getArticleBySlug } from '@/lib/articles';
+import Layout from '@/layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map(article => ({
+    params: { slug: article.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+
+// Récupère l'article
+const article = await getArticleBySlug(slug || '');
+
+// 404 si article non trouvé
+if (!article) {
+  return Astro.response.write('Not found', { status: 404 });
+}
+
+// Récupère articles similaires (même catégorie, sauf celui-ci)
+const relatedArticles = await getArticlesByCategory(article.category);
+const filtered = relatedArticles
+  .filter(a => a.slug !== article.slug)
+  .slice(0, 3);
+
+// Récupère prev/next
+const allArticles = await getArticles();
+const index = allArticles.findIndex(a => a.slug === article.slug);
+const prevArticle = index > 0 ? allArticles[index - 1] : null;
+const nextArticle = index < allArticles.length - 1 ? allArticles[index + 1] : null;
+
+// Génère table of contents basée sur le contenu
+const generateToc = (content: string | undefined) => {
+  if (!content) return [];
+  const headingRegex = /<h[2-3]>(.*?)<\/h[2-3]>/g;
+  const headings = [];
+  let match;
+
+  while ((match = headingRegex.exec(content)) !== null) {
+    const id = match[1]
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    headings.push({
+      text: match[1].replace(/<[^>]+>/g, ''),
+      id: id,
+      level: parseInt(match[0][2]),
+    });
+  }
+
+  return headings;
+};
+
+// Estime le temps de lecture
+const calculateReadingTime = (text: string | undefined) => {
+  if (!text) return 5;
+  const words = text.replace(/<[^>]+>/g, '').split(/\s+/).length;
+  return Math.ceil(words / 200); // 200 words/min
+};
+
+// Format categories
+const categoryLabels = {
+  lettre: '📝 Lettre',
+  pamphlet: '📢 Pamphlet',
+  fosse: '🕳️ La Fosse',
+};
+
+// Contenu HTML (à remplacer par contenu réel depuis Supabase)
+const contentHtml =
+  article.content ||
+  `<p>${article.excerpt}</p>
+<p>Contenu complet de l'article à ajouter dans Supabase.</p>`;
+
+const toc = generateToc(contentHtml);
+const readingTime = calculateReadingTime(contentHtml);
+
+// Format date
+const date = new Date(article.date);
+const formattedDate = date.toLocaleDateString('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+const meta = {
+  title: `${article.title} · La Déraison`,
+  description: article.excerpt,
+};
+---
+
+<Layout {...meta}>
+  <article class="article">
+    <!-- Breadcrumb -->
+    <nav class="article__breadcrumb">
+      <a href="/">Accueil</a>
+      <span>/</span>
+      <a href="/lettres">Les Lettres</a>
+      <span>/</span>
+      <span>{article.title}</span>
+    </nav>
+
+    <!-- Header -->
+    <header class="article__header">
+      <div class="article__meta-top">
+        <span class="article__category">{categoryLabels[article.category]}</span>
+        <span class="article__date">{formattedDate}</span>
+        <span class="article__reading-time">{readingTime} min de lecture</span>
+      </div>
+
+      <h1 class="article__title">{article.title}</h1>
+
+      <div class="article__meta-bottom">
+        <span class="article__author">Par {article.author}</span>
+      </div>
+
+      {article.linkedinUrl && (
+        <a href={article.linkedinUrl} class="article__source" target="_blank" rel="noopener">
+          → Lire sur LinkedIn
+        </a>
+      )}
+    </header>
+
+    <!-- Rule -->
+    <div class="article__rule" />
+
+    <!-- Content Grid -->
+    <div class="article__grid">
+      <!-- Main Content -->
+      <main class="article__main">
+        <div class="article__content" set:html={contentHtml} />
+
+        <!-- Meta Footer -->
+        <footer class="article__footer">
+          <div class="article__tags">
+            {article.category && (
+              <a href={`/lettres?cat=${article.category}`} class="article__tag">
+                #{article.category}
+              </a>
+            )}
+          </div>
+        </footer>
+      </main>
+
+      <!-- Sidebar: Table of Contents -->
+      {toc.length > 0 && (
+        <aside class="article__sidebar">
+          <nav class="article__toc">
+            <h3 class="article__toc-title">Sur cette page</h3>
+            <ul class="article__toc-list">
+              {toc.map(heading => (
+                <li
+                  class={`article__toc-item article__toc-item--level${heading.level}`}
+                >
+                  <a href={`#${heading.id}`}>{heading.text}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <!-- Related Articles -->
+          {filtered.length > 0 && (
+            <div class="article__related">
+              <h3 class="article__related-title">Articles similaires</h3>
+              <ul class="article__related-list">
+                {filtered.map(related => (
+                  <li class="article__related-item">
+                    <a href={`/lettres/${related.slug}`} class="article__related-link">
+                      {related.title}
+                    </a>
+                    <span class="article__related-date">
+                      {new Date(related.date).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <!-- Social Share -->
+          <div class="article__share">
+            <h3 class="article__share-title">Partager</h3>
+            <div class="article__share-buttons">
+              <a
+                href={`https://twitter.com/intent/tweet?url=${Astro.url}&text=${article.title}`}
+                class="article__share-btn article__share-btn--twitter"
+                target="_blank"
+                rel="noopener"
+              >
+                Twitter
+              </a>
+              <a
+                href={`https://www.linkedin.com/sharing/share-offsite/?url=${Astro.url}`}
+                class="article__share-btn article__share-btn--linkedin"
+                target="_blank"
+                rel="noopener"
+              >
+                LinkedIn
+              </a>
+              <a
+                href={`mailto:?subject=${article.title}&body=${article.url}`}
+                class="article__share-btn article__share-btn--email"
+              >
+                Email
+              </a>
+            </div>
+          </div>
+        </aside>
+      )}
+    </div>
+
+    <!-- Navigation -->
+    <nav class="article__nav">
+      <div class="article__nav-prev">
+        {prevArticle && (
+          <a href={`/lettres/${prevArticle.slug}`} class="article__nav-link">
+            <span class="article__nav-label">← Précédent</span>
+            <span class="article__nav-title">{prevArticle.title}</span>
+          </a>
+        )}
+      </div>
+
+      <a href="/lettres" class="article__nav-back">Tous les articles</a>
+
+      <div class="article__nav-next">
+        {nextArticle && (
+          <a href={`/lettres/${nextArticle.slug}`} class="article__nav-link article__nav-link--next">
+            <span class="article__nav-label">Suivant →</span>
+            <span class="article__nav-title">{nextArticle.title}</span>
+          </a>
+        )}
+      </div>
+    </nav>
+  </article>
+</Layout>
+
+<style lang="scss">
+  .article {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vh, 4rem) clamp(1.5rem, 8vw, 3rem);
+  }
+
+  .article__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+
+    a {
+      color: var(--beige-pali);
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--parchemin);
+      }
+    }
+
+    span {
+      color: var(--rouille);
+    }
+  }
+
+  .article__header {
+    margin-bottom: 2rem;
+  }
+
+  .article__meta-top {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .article__category {
+    color: var(--sang);
+    padding: 0.25rem 0.75rem;
+    border: 1px solid rgb(192 57 43 / 0.3);
+  }
+
+  .article__date {
+    color: var(--beige-pali);
+  }
+
+  .article__reading-time {
+    color: var(--gris-presse);
+  }
+
+  .article__title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.1;
+    color: var(--parchemin);
+    margin: 0 0 1.5rem 0;
+  }
+
+  .article__meta-bottom {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--beige-pali);
+    margin-bottom: 1rem;
+  }
+
+  .article__source {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sang);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--parchemin);
+    }
+  }
+
+  .article__rule {
+    width: 3rem;
+    height: 2px;
+    background: var(--sang);
+    margin: 2rem 0;
+  }
+
+  .article__grid {
+    display: grid;
+    grid-template-columns: 1fr 250px;
+    gap: clamp(2rem, 5vw, 4rem);
+    margin-bottom: 4rem;
+  }
+
+  .article__main {
+    grid-column: 1;
+  }
+
+  .article__content {
+    font-family: var(--font-body);
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--parchemin);
+
+    p {
+      margin-bottom: 1.5rem;
+    }
+
+    h2,
+    h3 {
+      font-family: var(--font-serif);
+      font-weight: 900;
+      color: var(--parchemin);
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1.8rem;
+      line-height: 1.2;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      line-height: 1.3;
+    }
+
+    strong {
+      color: var(--sang);
+      font-weight: 900;
+    }
+
+    em {
+      font-style: italic;
+      color: var(--beige-pali);
+    }
+
+    a {
+      color: var(--sang);
+      text-decoration: underline;
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--parchemin);
+      }
+    }
+
+    ul,
+    ol {
+      margin: 1.5rem 0 1.5rem 2rem;
+
+      li {
+        margin-bottom: 0.75rem;
+      }
+    }
+
+    blockquote {
+      border-left: 3px solid var(--sang);
+      padding-left: 1.5rem;
+      margin: 2rem 0;
+      font-style: italic;
+      color: var(--beige-pali);
+    }
+  }
+
+  .article__footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgb(139 37 0 / 0.3);
+  }
+
+  .article__tags {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .article__tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--beige-pali);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgb(139 37 0 / 0.3);
+    transition: all 0.2s;
+
+    &:hover {
+      color: var(--parchemin);
+      border-color: rgb(139 37 0 / 0.6);
+    }
+  }
+
+  .article__sidebar {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .article__toc {
+    position: sticky;
+    top: 2rem;
+  }
+
+  .article__toc-title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: 0.95rem;
+    color: var(--parchemin);
+    margin-bottom: 1rem;
+  }
+
+  .article__toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .article__toc-item {
+    margin-bottom: 0.5rem;
+
+    &--level3 {
+      margin-left: 1rem;
+    }
+
+    a {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--beige-pali);
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--parchemin);
+      }
+    }
+  }
+
+  .article__related {
+    padding: 1.5rem;
+    border: 1px solid rgb(139 37 0 / 0.3);
+    background: rgba(139 37 0 / 0.05);
+  }
+
+  .article__related-title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: 0.95rem;
+    color: var(--parchemin);
+    margin: 0 0 1rem 0;
+  }
+
+  .article__related-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .article__related-item {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .article__related-link {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--beige-pali);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--parchemin);
+    }
+  }
+
+  .article__related-date {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--gris-presse);
+  }
+
+  .article__share {
+    padding: 1.5rem;
+    border: 1px solid rgb(192 57 43 / 0.3);
+  }
+
+  .article__share-title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: 0.95rem;
+    color: var(--parchemin);
+    margin: 0 0 1rem 0;
+  }
+
+  .article__share-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .article__share-btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    border: 1px solid;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.2s;
+
+    &--twitter {
+      color: var(--beige-pali);
+      border-color: var(--beige-pali);
+
+      &:hover {
+        color: #1DA1F2;
+        border-color: #1DA1F2;
+      }
+    }
+
+    &--linkedin {
+      color: var(--beige-pali);
+      border-color: var(--beige-pali);
+
+      &:hover {
+        color: #0A66C2;
+        border-color: #0A66C2;
+      }
+    }
+
+    &--email {
+      color: var(--sang);
+      border-color: var(--sang);
+
+      &:hover {
+        background: rgba(192 57 43 / 0.1);
+      }
+    }
+  }
+
+  .article__nav {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 2rem;
+    align-items: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgb(139 37 0 / 0.3);
+  }
+
+  .article__nav-prev,
+  .article__nav-next {
+    grid-column: auto;
+  }
+
+  .article__nav-prev {
+    text-align: left;
+  }
+
+  .article__nav-next {
+    text-align: right;
+  }
+
+  .article__nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+
+    &--next {
+      flex-direction: column-reverse;
+    }
+  }
+
+  .article__nav-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rouille);
+  }
+
+  .article__nav-title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: var(--parchemin);
+    line-height: 1.2;
+  }
+
+  .article__nav-back {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--beige-pali);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--parchemin);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .article__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .article__sidebar {
+      grid-column: 1;
+      flex-direction: row;
+      gap: 2rem;
+
+      > * {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+
+    .article__toc {
+      position: static;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .article {
+      padding: 1.5rem 1rem;
+    }
+
+    .article__title {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+    }
+
+    .article__content {
+      font-size: 1rem;
+    }
+
+    .article__sidebar {
+      flex-direction: column;
+    }
+
+    .article__nav {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .article__nav-prev,
+    .article__nav-next {
+      text-align: left;
+    }
+
+    .article__nav-back {
+      display: none;
+    }
+  }
+</style>

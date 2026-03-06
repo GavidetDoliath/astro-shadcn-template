@@ -1,0 +1,206 @@
+---
+// src/components/ArticlesSection.astro
+import ArticleCard from '@/components/ArticleCard.astro';
+import { getArticles } from '@/lib/articles';
+
+// Récupère les 6 derniers articles depuis Supabase
+const articles = await getArticles(6, 'featured');
+---
+
+<section class="articles">
+  <div class="articles__inner">
+    <!-- Header -->
+    <div class="articles__header">
+      <div class="articles__label">— Les Lettres</div>
+      <div class="articles__rule" />
+      <h2 class="articles__title">Derniers Pamphlets</h2>
+    </div>
+
+    <!-- Bento Grid -->
+    <div class="articles__grid">
+      {articles.map((article, index) => {
+        // Marquer les 2 premiers articles importants comme "featured"
+        const isFeatured = index < 2;
+        return <ArticleCard article={article} featured={isFeatured} />;
+      })}
+    </div>
+
+    <!-- CTA -->
+    <div class="articles__cta">
+      <a href="/lettres" class="articles__link">Voir tous les articles →</a>
+    </div>
+  </div>
+</section>
+
+<style lang="scss">
+  .articles {
+    position: relative;
+    width: 100%;
+    background: var(--noir);
+    padding: clamp(4rem, 10vh, 10rem) clamp(1.5rem, 8vw, 8rem);
+    border-top: 1px solid rgb(139 37 0 / 0.3);
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+    }
+  }
+
+  .articles__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .articles__header {
+    margin-bottom: clamp(2.5rem, 6vh, 4rem);
+  }
+
+  .articles__label {
+    font-family: var(--font-mono);
+    font-size: clamp(0.6rem, 1vw, 0.75rem);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--rouille);
+    margin-bottom: 1rem;
+  }
+
+  .articles__rule {
+    width: 3rem;
+    height: 2px;
+    background: var(--sang);
+    margin-bottom: 1.5rem;
+  }
+
+  .articles__title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 0.95;
+    color: var(--parchemin);
+    margin: 0;
+  }
+
+  .articles__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-auto-rows: 350px;
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-bottom: clamp(2.5rem, 6vh, 4rem);
+
+    /* Bento layout: 2 big articles (featured) + 4 small */
+    :nth-child(1) {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+
+    :nth-child(2) {
+      grid-column: span 1;
+      grid-row: span 2;
+    }
+
+    :nth-child(3) {
+      grid-column: span 1;
+      grid-row: span 1;
+    }
+
+    :nth-child(4) {
+      grid-column: span 1;
+      grid-row: span 1;
+    }
+
+    :nth-child(5) {
+      grid-column: span 1;
+      grid-row: span 1;
+    }
+
+    :nth-child(6) {
+      grid-column: span 1;
+      grid-row: span 1;
+    }
+  }
+
+  .articles__cta {
+    text-align: center;
+  }
+
+  .articles__link {
+    font-family: var(--font-mono);
+    font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--parchemin);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: inline-block;
+
+    &:hover {
+      color: var(--sang);
+    }
+  }
+
+  /* Responsive: tablette */
+  @media (max-width: 1024px) {
+    .articles__grid {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-auto-rows: 300px;
+
+      :nth-child(1) {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+
+      :nth-child(2) {
+        grid-column: span 1;
+        grid-row: span 2;
+      }
+
+      :nth-child(3),
+      :nth-child(4) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+
+      :nth-child(5),
+      :nth-child(6) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+    }
+  }
+
+  /* Responsive: mobile */
+  @media (max-width: 768px) {
+    .articles__grid {
+      grid-template-columns: 1fr;
+      grid-auto-rows: 300px;
+
+      :nth-child(1),
+      :nth-child(2),
+      :nth-child(3),
+      :nth-child(4),
+      :nth-child(5),
+      :nth-child(6) {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .articles__grid {
+      grid-auto-rows: 250px;
+    }
+  }
+</style>

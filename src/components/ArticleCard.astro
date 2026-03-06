@@ -1,0 +1,237 @@
+---
+// src/components/ArticleCard.astro
+import type { Article } from '@/lib/articles';
+
+interface Props {
+  article: Article;
+  featured?: boolean;
+}
+
+const { article, featured = false } = Astro.props;
+
+// Format date
+const date = new Date(article.date);
+const formattedDate = date.toLocaleDateString('fr-FR', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
+
+// Category labels
+const categoryLabels = {
+  lettre: 'Lettre',
+  pamphlet: 'Pamphlet',
+  fosse: 'La Fosse',
+};
+---
+
+<article
+  class={`article-card ${featured ? 'article-card--featured' : ''}`}
+  data-featured={featured}
+>
+  <!-- Image -->
+  <div class="article-card__image">
+    <img src={article.image} alt={article.title} loading="lazy" />
+    <div class="article-card__overlay" />
+  </div>
+
+  <!-- Content -->
+  <div class="article-card__content">
+    <!-- Meta -->
+    <div class="article-card__meta">
+      <span class="article-card__category">{categoryLabels[article.category]}</span>
+      <span class="article-card__date">{formattedDate}</span>
+    </div>
+
+    <!-- Title -->
+    <h3 class="article-card__title">{article.title}</h3>
+
+    <!-- Excerpt -->
+    <p class="article-card__excerpt">{article.excerpt}</p>
+
+    <!-- Read more link -->
+    <a href={`/lettres/${article.slug}`} class="article-card__link">
+      Lire →
+    </a>
+  </div>
+</article>
+
+<style lang="scss">
+  .article-card {
+    position: relative;
+    height: 100%;
+    background: var(--encre);
+    border: 1px solid rgb(139 37 0 / 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgb(139 37 0 / 0.5);
+      box-shadow: 0 0 0 1px rgba(192, 57, 43, 0.2);
+
+      .article-card__overlay {
+        opacity: 0.15;
+      }
+
+      .article-card__link {
+        color: var(--sang);
+      }
+    }
+
+    &--featured {
+      grid-column: span 2;
+      grid-row: span 2;
+
+      .article-card__image {
+        height: 100%;
+        min-height: 400px;
+      }
+
+      .article-card__content {
+        padding: clamp(1.5rem, 4vw, 2.5rem);
+      }
+
+      .article-card__title {
+        font-size: clamp(1.4rem, 3vw, 2rem);
+      }
+
+      .article-card__excerpt {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+      }
+
+      @media (max-width: 768px) {
+        grid-column: span 1;
+        grid-row: span 1;
+
+        .article-card__image {
+          min-height: 250px;
+        }
+      }
+    }
+  }
+
+  .article-card__image {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+    background: var(--gris-presse);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      transition: transform 0.3s ease;
+    }
+
+    &:hover img {
+      transform: scale(1.05);
+    }
+  }
+
+  .article-card__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(192, 57, 43, 0.3) 0%, rgba(139, 37, 0, 0.2) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .article-card__content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    justify-content: space-between;
+  }
+
+  .article-card__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .article-card__category {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sang);
+    padding: 0.25rem 0.5rem;
+    border: 1px solid rgb(192 57 43 / 0.3);
+  }
+
+  .article-card__date {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--beige-pali);
+  }
+
+  .article-card__title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(1.1rem, 2vw, 1.35rem);
+    line-height: 1.1;
+    color: var(--parchemin);
+    margin: 0 0 0.75rem 0;
+  }
+
+  .article-card__excerpt {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: clamp(0.85rem, 1.2vw, 0.95rem);
+    color: var(--beige-pali);
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .article-card__link {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--parchemin);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    align-self: flex-start;
+
+    &:hover {
+      color: var(--sang);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .article-card {
+      &--featured {
+        grid-column: span 1;
+        grid-row: span 1;
+
+        .article-card__image {
+          min-height: 200px;
+        }
+
+        .article-card__title {
+          font-size: clamp(1rem, 2.5vw, 1.2rem);
+        }
+
+        .article-card__excerpt {
+          -webkit-line-clamp: 2;
+        }
+      }
+    }
+  }
+</style>

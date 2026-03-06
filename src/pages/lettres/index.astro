@@ -1,0 +1,312 @@
+---
+// src/pages/lettres/index.astro
+// Page listing all articles with filters
+
+import { getArticles, getArticlesByCategory } from '@/lib/articles';
+import Layout from '@/layouts/Layout.astro';
+
+// Get category filter from query params
+const category = Astro.url.searchParams.get('cat') as 'lettre' | 'pamphlet' | 'fosse' | null;
+
+// Fetch articles based on category
+let articles;
+if (category && ['lettre', 'pamphlet', 'fosse'].includes(category)) {
+  articles = await getArticlesByCategory(category);
+} else {
+  articles = await getArticles();
+}
+
+// Category labels
+const categoryLabels = {
+  lettre: '📝 Lettres',
+  pamphlet: '📢 Pamphlets',
+  fosse: '🕳️ La Fosse',
+};
+
+const meta = {
+  title: 'Les Lettres · La Déraison',
+  description: 'Tous les articles de la Lettre de la Déraison - une guérilla littéraire',
+};
+---
+
+<Layout {...meta}>
+  <section class="articles-listing">
+    <div class="articles-listing__inner">
+      <!-- Header -->
+      <header class="articles-listing__header">
+        <h1 class="articles-listing__title">Les Lettres</h1>
+        <p class="articles-listing__subtitle">Tous nos articles</p>
+      </header>
+
+      <!-- Filters -->
+      <nav class="articles-listing__filters">
+        <a href="/lettres" class={`articles-listing__filter ${!category ? 'active' : ''}`}>
+          Tous ({articles.length})
+        </a>
+        {Object.entries(categoryLabels).map(([cat, label]) => {
+          const count = articles.filter(a => a.category === cat).length;
+          return (
+            <a
+              href={`/lettres?cat=${cat}`}
+              class={`articles-listing__filter ${category === cat ? 'active' : ''}`}
+            >
+              {label} ({count})
+            </a>
+          );
+        })}
+      </nav>
+
+      <!-- Rule -->
+      <div class="articles-listing__rule" />
+
+      <!-- Articles List -->
+      {articles.length > 0 ? (
+        <div class="articles-listing__list">
+          {articles.map(article => {
+            const date = new Date(article.date);
+            const formattedDate = date.toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            });
+
+            return (
+              <article class="articles-listing__item">
+                <a href={`/lettres/${article.slug}`} class="articles-listing__link">
+                  <div class="articles-listing__item-header">
+                    <h2 class="articles-listing__item-title">{article.title}</h2>
+                    <span class="articles-listing__item-category">
+                      {categoryLabels[article.category]}
+                    </span>
+                  </div>
+
+                  <p class="articles-listing__item-excerpt">{article.excerpt}</p>
+
+                  <div class="articles-listing__item-meta">
+                    <time class="articles-listing__item-date">{formattedDate}</time>
+                    {article.author && (
+                      <span class="articles-listing__item-author">Par {article.author}</span>
+                    )}
+                  </div>
+                </a>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div class="articles-listing__empty">
+          <p>Aucun article trouvé dans cette catégorie.</p>
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  .articles-listing {
+    min-height: 100vh;
+    background: var(--noir);
+    padding: clamp(2rem, 6vh, 4rem) clamp(1.5rem, 8vw, 8rem);
+
+    &::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      z-index: 0;
+    }
+  }
+
+  .articles-listing__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .articles-listing__header {
+    margin-bottom: 3rem;
+  }
+
+  .articles-listing__title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 0.95;
+    color: var(--parchemin);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .articles-listing__subtitle {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: var(--beige-pali);
+    margin: 0;
+  }
+
+  .articles-listing__filters {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .articles-listing__filter {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--beige-pali);
+    text-decoration: none;
+    padding: 0.6rem 1rem;
+    border: 1px solid rgb(139 37 0 / 0.3);
+    transition: all 0.2s;
+    cursor: pointer;
+
+    &:hover {
+      border-color: rgb(139 37 0 / 0.6);
+      color: var(--parchemin);
+    }
+
+    &.active {
+      background: var(--sang);
+      color: var(--parchemin);
+      border-color: var(--sang);
+    }
+  }
+
+  .articles-listing__rule {
+    width: 3rem;
+    height: 2px;
+    background: var(--sang);
+    margin-bottom: 3rem;
+  }
+
+  .articles-listing__list {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2rem, 5vh, 3rem);
+  }
+
+  .articles-listing__item {
+    border-bottom: 1px solid rgb(139 37 0 / 0.2);
+    padding-bottom: clamp(1.5rem, 4vh, 2.5rem);
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+
+  .articles-listing__link {
+    display: block;
+    text-decoration: none;
+    transition: all 0.2s;
+
+    &:hover {
+      .articles-listing__item-title {
+        color: var(--sang);
+      }
+    }
+  }
+
+  .articles-listing__item-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .articles-listing__item-title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
+    line-height: 1.2;
+    color: var(--parchemin);
+    margin: 0;
+    transition: color 0.2s;
+  }
+
+  .articles-listing__item-category {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sang);
+    padding: 0.25rem 0.6rem;
+    border: 1px solid rgb(192 57 43 / 0.3);
+    white-space: nowrap;
+  }
+
+  .articles-listing__item-excerpt {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+    color: var(--beige-pali);
+    line-height: 1.6;
+    margin: 0 0 1rem 0;
+  }
+
+  .articles-listing__item-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gris-presse);
+  }
+
+  .articles-listing__item-date {
+    display: block;
+  }
+
+  .articles-listing__item-author {
+    display: block;
+  }
+
+  .articles-listing__empty {
+    text-align: center;
+    padding: 3rem 1rem;
+
+    p {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      color: var(--beige-pali);
+      margin: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .articles-listing {
+      padding: 1.5rem 1rem;
+    }
+
+    .articles-listing__title {
+      font-size: clamp(2rem, 5vw, 2.5rem);
+    }
+
+    .articles-listing__filters {
+      gap: 0.5rem;
+    }
+
+    .articles-listing__filter {
+      font-size: 0.6rem;
+      padding: 0.5rem 0.75rem;
+    }
+
+    .articles-listing__item-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  }
+</style>

@@ -2,18 +2,21 @@
 // src/layouts/Layout.astro
 import Header from '@/components/Header.astro';
 import Head from '@/components/Head.astro';
+import Footer from '@/components/Footer.astro';
 import '@/styles/global.css';
 import type { PageMeta } from '@/lib/constants';
 
 const props = Astro.props as PageMeta;
+const isHomepage = Astro.url.pathname === '/';
 ---
 
 <!doctype html>
-<html lang='ja'>
+<html lang='fr'>
   <Head {...props} />
   <body>
-    <Header />
+    {!isHomepage && <Header />}
     <slot />
+    <Footer />
   </body>
 </html>
 
