@@ -69,33 +69,88 @@ function extractJsonLD(html) {
 }
 
 /**
- * Extract first meaningful paragraph as excerpt
+ * Extract longer meaningful content as excerpt
+ * LinkedIn articles can be substantial, so extract more text
  */
 function extractExcerpt(html, fallback = '') {
   try {
-    // Try article content
-    const articleMatch = html.match(/<article[^>]*>[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/);
-    if (articleMatch?.[1]) {
-      const text = articleMatch[1]
+    // Remove script and style tags that might contain trash content
+    let cleaned = html
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+
+    // Blacklist of content to skip (popup text, navigation, etc.)
+    const skipPatterns = [
+      /LinkedIn respecte/i,
+      /cookies essentiels/i,
+      /politiques?.*cookies/i,
+      /en savoir plus/i,
+      /politiques?.*utilisateur/i,
+      /conditions.*service/i,
+      /accepter.*continuer/i,
+    ];
+
+    // Strategy 1: Try JSON-LD articleBody (most reliable)
+    const jsonLDMatch = cleaned.match(/"articleBody"\s*:\s*"([^"\\]*(\\.[^"\\]*)*)"/);
+    if (jsonLDMatch?.[1]) {
+      let text = jsonLDMatch[1]
+        .replace(/\\n/g, ' ')
+        .replace(/\\"/g, '"')
         .replace(/<[^>]+>/g, '')
-        .trim()
-        .substring(0, 220);
-      if (text.length > 50) return text;
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // Check if it's real content (not consent popup)
+      if (text.length > 100 && !skipPatterns.some(p => p.test(text))) {
+        return text.substring(0, 1200);
+      }
     }
 
-    // Fallback to any first paragraph
-    const pMatch = html.match(/<p[^>]*>([\s\S]*?)<\/p>/);
-    if (pMatch?.[1]) {
-      const text = pMatch[1]
-        .replace(/<[^>]+>/g, '')
-        .trim()
-        .substring(0, 220);
-      if (text.length > 50) return text;
+    // Strategy 2: Try og:description meta tag
+    const descMatch = cleaned.match(/<meta[^>]*property="og:description"[^>]*content="([^"]*)"/i) ||
+                      cleaned.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"/i);
+    if (descMatch?.[1]) {
+      const text = descMatch[1].trim();
+      if (text.length > 100 && !skipPatterns.some(p => p.test(text))) {
+        return text.substring(0, 1200);
+      }
     }
 
-    return fallback.substring(0, 220);
+    // Strategy 3: Find all paragraphs and combine, filtering junk
+    const paragraphs = [];
+    const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+    let match;
+    while ((match = pRegex.exec(cleaned)) !== null) {
+      const text = match[1]
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // Skip empty, short, or blacklisted content
+      if (text.length > 60 && !skipPatterns.some(p => p.test(text))) {
+        paragraphs.push(text);
+      }
+    }
+
+    // Get first few paragraphs
+    if (paragraphs.length > 0) {
+      // Use 2-3 paragraphs to build excerpt
+      const combined = paragraphs.slice(0, 3).join(' ');
+      if (combined.length > 100) {
+        return combined.substring(0, 1200);
+      }
+    }
+
+    // Strategy 4: Last resort - get from JSON-LD description
+    const jsonLD = extractJsonLD(html);
+    if (jsonLD?.description && jsonLD.description.length > 100) {
+      return jsonLD.description.substring(0, 1200);
+    }
+
+    // Fallback
+    return (fallback || 'Article content unavailable').substring(0, 1200);
   } catch {
-    return fallback.substring(0, 220);
+    return (fallback || 'Article content unavailable').substring(0, 500);
   }
 }
 

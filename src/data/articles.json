@@ -1,68 +1,80 @@
 [
   {
-    "id": "20772775-49d0-479c-ae03-5f946c8d0ef0",
+    "id": "f1a2b3c4-d5e6-47f8-91d2-e5f9a1b3c5d7",
+    "title": "Crève, c'est remboursé",
+    "excerpt": "La France, ce pays qui n'a plus les moyens de payer la morphine mais trouve encore le budget pour financer la seringue létale, examine donc en ce mois de février 2026, avec la solennité d'un croque-mort qui aurait sniffé du poppers dans un confessionnal, la deuxième lecture d'une proposition de loi autorisant l'État à vous aider à crever pourvu que vous remplissiez un formulaire en cinq points.",
+    "date": "2026-02-18",
+    "category": "pamphlet",
+    "image": "/assets/articles/placeholder.jpg",
+    "slug": "creve-c-est-rembourse",
+    "author": "François Vannesson",
+    "linkedinUrl": "https://fr.linkedin.com/pulse/cr%C3%A8ve-cest-rembours%C3%A9-fran%C3%A7ois-vannesson-hpj9e",
+    "featured": false,
+    "published": true
+  },
+  {
+    "id": "2b262899-c718-4251-b0f0-9d042d9f6f50",
     "title": "La Malédiction Mélenchon",
-    "excerpt": "Il existe, dans la nosologie des maladies orphelines, une pathologie si rare que l'Organisation mondiale de la Santé n'a jamais osé lui consacrer une entrée : le syndrome de Midas inversé, affection par laquelle tout ce ",
+    "excerpt": "Il existe, dans la nosologie des maladies orphelines, une pathologie si rare que l'Organisation mondiale de la Santé n'a jamais osé lui consacrer une entrée : le syndrome de Midas inversé, affection par laquelle tout ce que le porteur touche ne se transforme pas en or mais en décombres fumants, en exil moscovite ou en comparution devant un tribunal fédéral de Manhattan.",
     "date": "2026-03-01",
     "category": "lettre",
     "image": "/assets/articles/placeholder.jpg",
     "slug": "la-malediction-melenchon",
     "author": "François Vannesson",
-    "linkedinUrl": "https://fr.linkedin.com/pulse/la-mal%C3%A9diction-m%C3%A9lenchon-fran%C3%A7ois-vannesson-vcube"
-  },
-  {
-    "id": "2b262899-c718-4251-b0f0-9d042d9f6f50",
-    "title": "Crève, c'est remboursé",
-    "excerpt": "La France, ce pays qui n'a plus les moyens de payer la morphine mais trouve encore le budget pour financer la seringue létale, examine donc en ce mois de février 2026, avec la solennité d'un croque-mort qui aurait sniffé",
-    "date": "2026-02-18",
-    "category": "lettre",
-    "image": "/assets/articles/placeholder.jpg",
-    "slug": "creve-c-est-rembourse",
-    "author": "François Vannesson",
-    "linkedinUrl": "https://fr.linkedin.com/pulse/cr%C3%A8ve-cest-rembours%C3%A9-fran%C3%A7ois-vannesson-hpj9e"
+    "linkedinUrl": "https://fr.linkedin.com/pulse/la-mal%C3%A9diction-m%C3%A9lenchon-fran%C3%A7ois-vannesson-vcube",
+    "featured": true,
+    "published": true
   },
   {
     "id": "e45a06a0-8f71-449e-8e60-910ce0fb724c",
     "title": "Circulaire A.F.F.L.E.U.R. n°2026‑VDL–14F/69",
-    "excerpt": "DOCUMENT OFFICIEL - RÉPUBLIQUE FRANÇAISE Ministère de la Coordination Intime et de la Synergie Copulatoire (MCISC) Direction Générale de l’Optimisation Érogène Stratégique (DGOES) Note stratégique confidentielle - Circul",
+    "excerpt": "DOCUMENT OFFICIEL - RÉPUBLIQUE FRANÇAISE Ministère de la Coordination Intime et de la Synergie Copulatoire (MCISC) Note stratégique confidentielle. Suite à la publication du dernier rapport de l'Observatoire des Flux Orgastiques Nationaux (OFON), il ressort que le taux d'activité coïtale hebdomadaire a chuté de 41 % depuis 2011.",
     "date": "2026-02-14",
     "category": "pamphlet",
     "image": "/assets/articles/placeholder.jpg",
     "slug": "circulaire-a-f-f-l-e-u-r-n-2026-vdl-14f-69",
     "author": "François Vannesson",
-    "linkedinUrl": "https://fr.linkedin.com/pulse/circulaire-affleur-n2026vdl14f69-fran%C3%A7ois-vannesson-lb2ye"
+    "linkedinUrl": "https://fr.linkedin.com/pulse/circulaire-affleur-n2026vdl14f69-fran%C3%A7ois-vannesson-lb2ye",
+    "featured": false,
+    "published": true
   },
   {
     "id": "9fd2537a-3fed-4031-b41e-bc5a50e7f788",
     "title": "Sur un malentendu, ça peut marcher!",
-    "excerpt": "LinkedIn respecte votre confidentialité\n          \n            \n              LinkedIn et des tiers utilisent des cookies essentiels et non essentiels pour fournir, sécuriser, analyser et améliorer nos Services, et pour ",
+    "excerpt": "Françaises, Français, il faut bien qu'un jour quelqu'un se lève. Non pas pour mendier un strapontin au banquet des faillis, ni pour quémander leur onction tiède sur les plateaux encensés, mais pour parler net. Pour nommer les choses, les douleurs, les trahisons. Pour dire que nous avons été trompés.",
     "date": "2026-02-12",
     "category": "lettre",
     "image": "/assets/articles/placeholder.jpg",
     "slug": "sur-un-malentendu-ca-peut-marcher",
     "author": "François Vannesson",
-    "linkedinUrl": "https://fr.linkedin.com/pulse/sur-un-malentendu-%C3%A7a-peut-marcher-fran%C3%A7ois-vannesson-kltse"
+    "linkedinUrl": "https://fr.linkedin.com/pulse/sur-un-malentendu-%C3%A7a-peut-marcher-fran%C3%A7ois-vannesson-kltse",
+    "featured": false,
+    "published": true
   },
   {
     "id": "c835fbeb-432f-451c-9ff9-81a15c3d27a6",
     "title": "Vous confondez cohérence et soumission : nous, non",
-    "excerpt": "Ils sont là. Alignés comme des cierges trempés dans la vaseline, veillant pieusement sur la pureté morale du monde médiatique, à condition que cette pureté suinte l’eau tiède, le tofu tiède, l’indignation tiède.",
+    "excerpt": "Ils sont là. Alignés comme des cierges trempés dans la vaseline, veillant pieusement sur la pureté morale du monde médiatique, à condition que cette pureté suinte l'eau tiède, le tofu tiède, l'indignation tiède. Leur mantra : « CNEWS, c'est le diable. Tout ce qui sort de cette chaîne pue le rance, le repli, la droite, le Mal. »",
     "date": "2026-02-09",
     "category": "lettre",
     "image": "/assets/articles/placeholder.jpg",
     "slug": "vous-confondez-coherence-et-soumission-nous-non",
     "author": "François Vannesson",
-    "linkedinUrl": "https://fr.linkedin.com/pulse/vous-confondez-coh%C3%A9rence-et-soumission-nous-non-fran%C3%A7ois-vannesson-g8ooe"
+    "linkedinUrl": "https://fr.linkedin.com/pulse/vous-confondez-coh%C3%A9rence-et-soumission-nous-non-fran%C3%A7ois-vannesson-g8ooe",
+    "featured": false,
+    "published": true
   },
   {
-    "id": "85fb6f3d-0641-46a4-b7cb-114807332ce6",
-    "title": "La Fosse des Littérateurs",
-    "excerpt": "",
+    "id": "f2b3c4d5-e6f7-48a9-92c3-f6a0b2c4d6e8",
+    "title": "Il était une fois...la chambre froide",
+    "excerpt": "Ils l'ont fait. Ils ont transformé l'union la plus antique, la plus féconde, la plus sérieusement joyeuse de l'histoire humaine - le mariage - en une bouillie juridico-sentimentale à base d'affects lyophilisés, d'engagements dégraissés, et de déclarations d'amour administrativement réversibles.",
     "date": "2026-02-05",
     "category": "fosse",
     "image": "/assets/articles/placeholder.jpg",
-    "slug": "la-fosse-des-litterateurs",
-    "author": "La Rédaction",
-    "linkedinUrl": "https://fr.linkedin.com/pulse/fosse-litt%C3%A9rateurs-fran%C3%A7ois-vannesson-abc123"
+    "slug": "il-etait-une-fois-la-chambre-froide",
+    "author": "François Vannesson",
+    "linkedinUrl": "https://fr.linkedin.com/pulse/il-etait-une-fois-chambre-froide-fran%C3%A7ois-vannesson-xyz789",
+    "featured": false,
+    "published": true
   }
 ]

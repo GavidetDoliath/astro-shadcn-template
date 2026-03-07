@@ -1,0 +1,59 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import ArticlesList from '@/components/admin/ArticlesList';
+
+// Fetch all articles server-side (no published filter - admin sees everything)
+const baseUrl = Astro.url.origin;
+const articlesResponse = await fetch(`${baseUrl}/api/admin/articles`);
+const articles = articlesResponse.ok ? await articlesResponse.json() : [];
+
+const stats = {
+  total: articles.length,
+  published: articles.filter((a: any) => a.published).length,
+  draft: articles.filter((a: any) => !a.published).length,
+};
+---
+
+<AdminLayout title="Dashboard">
+  <!-- Navigation -->
+  <nav style="margin-bottom: 2rem; display: flex; gap: 1rem; border-bottom: 1px solid var(--encre); padding-bottom: 1rem;">
+    <a
+      href="/admin"
+      style={{
+        padding: '0.5rem 1rem',
+        fontWeight: '600',
+        borderBottom: '2px solid var(--sang)',
+        marginBottom: '-1rem',
+        paddingBottom: '1.5rem',
+        textDecoration: 'none',
+        color: 'var(--parchemin)',
+      }}
+    >
+      Articles
+    </a>
+    <a
+      href="/admin/utilisateurs"
+      style={{
+        padding: '0.5rem 1rem',
+        fontWeight: '600',
+        textDecoration: 'none',
+        color: 'var(--beige-pali)',
+        transition: 'color 0.2s',
+      }}
+    >
+      Utilisateurs
+    </a>
+  </nav>
+
+  <h1>Articles</h1>
+
+  <div class="stats-row">
+    <div>{stats.total} articles au total</div>
+    <div>{stats.published} publiés</div>
+    <div>{stats.draft} brouillons</div>
+  </div>
+
+  <ArticlesList initialArticles={articles} client:load />
+</AdminLayout>

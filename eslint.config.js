@@ -131,7 +131,7 @@ export default [
 
   // 除外するディレクトリとファイル
   {
-    ignores: ['node_modules/**', 'dist/**', '.astro/**', '**/*.d.ts', 'public/**'],
+    ignores: ['node_modules/**', 'dist/**', '.astro/**', '.vercel/**', '**/*.d.ts', 'public/**', 'build/**'],
   },
 
   // Prettierとの競合を避ける設定（最後に配置）

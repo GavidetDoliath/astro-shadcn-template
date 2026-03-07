@@ -7,6 +7,7 @@ import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import glob from 'fast-glob';
+import vercel from '@astrojs/vercel';
 
 // プロジェクト内モジュール
 import { ASSETS_URL, getCurrentAssetsUrl, getCurrentBaseUrl, getCurrentSiteUrl } from './src/lib/constants.ts';
@@ -26,6 +27,8 @@ const outDirUrl = `./dist${getCurrentBaseUrl()}`; // 最後のスラッシュは
 const assetsDir = ASSETS_URL.STATUS ? new URL(assetsUrl).pathname.replace(/^\//, '') : '_astro';
 
 export default defineConfig({
+  adapter: vercel(),
+  output: 'server',
   site: process.env.PUBLIC_BASE_URL ? 'https://n-tong009.github.io' : siteUrl,
   base: process.env.PUBLIC_BASE_URL ? process.env.PUBLIC_BASE_URL : baseUrl,
   outDir: process.env.PUBLIC_BASE_URL ? './dist' : outDirUrl,
