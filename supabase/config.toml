@@ -1,0 +1,82 @@
+# Supabase Configuration
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+max_rows = 1000
+tls_enforce_upgrade = true
+
+[db]
+port = 54322
+max_connections = 20
+ssl_enforce_upgrade = true
+
+[studio]
+enabled = true
+port = 54323
+external_url = "http://localhost:3000"
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[storage]
+file_size_limit = 52428800
+cors = []
+allowed_mime_types = []
+
+[auth]
+enabled = true
+site_url = "http://localhost:4000"
+additional_redirect_urls = ["http://localhost:4000"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+email_autoconfirm = false
+external_email_enabled = true
+mailer_autoconfirm = false
+sms_autoconfirm = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+max_frequency = "24h"
+
+[auth.sms]
+enable_signup = true
+autoconfirm = false
+max_frequency = "15m"
+
+[functions]
+# TypeScript/JavaScript functions using Deno
+memory_mb = 512
+timeout_sec = 600
+
+[[functions.edge_functions]]
+slug = "stripe-webhook"
+verify_jwt = false
+
+[[functions.edge_functions]]
+slug = "stripe-checkout"
+verify_jwt = false
+
+[[functions.edge_functions]]
+slug = "stripe-portal"
+verify_jwt = false
+
+[[functions.edge_functions]]
+slug = "newsletter-subscribe"
+verify_jwt = false
+
+[[functions.edge_functions]]
+slug = "newsletter-confirm"
+verify_jwt = false
+
+[[functions.edge_functions]]
+slug = "newsletter-unsubscribe"
+verify_jwt = false

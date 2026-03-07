@@ -1,0 +1,306 @@
+---
+export const prerender = false;
+
+import { getAuthenticatedUser, hasRole } from '@/lib/auth';
+import AdminLayout from '@/layouts/AdminLayout.astro';
+
+// Check authentication
+const accessToken = Astro.cookies.get('sb-access-token')?.value;
+const user = await getAuthenticatedUser(accessToken);
+
+if (!user || !hasRole(user, 'admin', 'redacteur')) {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nouvel Article · Admin</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body>
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+      <div class="mx-auto max-w-6xl p-6">
+        <!-- Header -->
+        <div class="mb-8 flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold">Créer un article</h1>
+            <p class="mt-2 text-gray-600 dark:text-gray-400">Rédacteur: {user.display_name || user.email}</p>
+          </div>
+          <a href="/admin" class="rounded-lg bg-gray-300 px-4 py-2 hover:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600">
+            ← Retour
+          </a>
+        </div>
+
+        <!-- Form Container -->
+        <div class="rounded-lg bg-white p-8 shadow-lg dark:bg-gray-900">
+          <form id="article-form" class="space-y-6">
+            <!-- Row 1: Title and Author -->
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label for="title" class="block text-sm font-medium">
+                  Titre *
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  name="title"
+                  class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                  required
+                />
+              </div>
+              <div>
+                <label for="author" class="block text-sm font-medium">
+                  Auteur
+                </label>
+                <input
+                  type="text"
+                  id="author"
+                  name="author"
+                  class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                />
+              </div>
+            </div>
+
+            <!-- Row 2: Slug and Date -->
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label for="slug" class="block text-sm font-medium">
+                  Slug (URL) *
+                </label>
+                <input
+                  type="text"
+                  id="slug"
+                  name="slug"
+                  class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                  required
+                />
+                <p class="mt-1 text-xs text-gray-500">Auto-généré depuis le titre</p>
+              </div>
+              <div>
+                <label for="date" class="block text-sm font-medium">
+                  Date de publication *
+                </label>
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Row 3: Category and Access Level -->
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label for="category" class="block text-sm font-medium">
+                  Catégorie *
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                  required
+                >
+                  <option value="lettre">Lettre</option>
+                  <option value="pamphlet">Pamphlet</option>
+                  <option value="fosse">Fosse</option>
+                </select>
+              </div>
+              <div>
+                <label for="accessLevel" class="block text-sm font-medium">
+                  Accès *
+                </label>
+                <select
+                  id="accessLevel"
+                  name="accessLevel"
+                  class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                  required
+                >
+                  <option value="public">Public</option>
+                  <option value="subscriber_free">Abonné gratuit</option>
+                  <option value="subscriber_paid">Abonné payant</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Excerpt -->
+            <div>
+              <label for="excerpt" class="block text-sm font-medium">
+                Extrait (résumé court)
+              </label>
+              <textarea
+                id="excerpt"
+                name="excerpt"
+                rows="3"
+                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                placeholder="Résumé de l'article"
+              ></textarea>
+            </div>
+
+            <!-- Image URL -->
+            <div>
+              <label for="image" class="block text-sm font-medium">
+                URL Image
+              </label>
+              <input
+                type="url"
+                id="image"
+                name="image"
+                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                placeholder="https://..."
+              />
+            </div>
+
+            <!-- LinkedIn URL -->
+            <div>
+              <label for="linkedinUrl" class="block text-sm font-medium">
+                URL LinkedIn (source)
+              </label>
+              <input
+                type="url"
+                id="linkedinUrl"
+                name="linkedinUrl"
+                class="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-950"
+                placeholder="https://linkedin.com/pulse/..."
+              />
+            </div>
+
+            <!-- Rich Text Editor -->
+            <div>
+              <label class="block text-sm font-medium mb-2">Contenu de l'article *</label>
+              <div id="editor-container"></div>
+              <input type="hidden" id="content" name="content" />
+            </div>
+
+            <!-- Checkboxes -->
+            <div class="space-y-3">
+              <label class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="featured"
+                  class="h-4 w-4 rounded border-gray-300"
+                />
+                <span class="text-sm font-medium">En avant (featured)</span>
+              </label>
+              <label class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="published"
+                  checked
+                  class="h-4 w-4 rounded border-gray-300"
+                />
+                <span class="text-sm font-medium">Publié</span>
+              </label>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="hidden rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-300">
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end gap-3">
+              <a
+                href="/admin"
+                class="rounded-lg border border-gray-300 px-6 py-2 font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-900"
+              >
+                Annuler
+              </a>
+              <button
+                type="submit"
+                class="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Créer article
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script define:vars={{ userId: user.id }}>
+      import { useEditor, EditorContent } from '@tiptap/react';
+      import StarterKit from '@tiptap/starter-kit';
+      import Image from '@tiptap/extension-image';
+      import Link from '@tiptap/extension-link';
+      import Highlight from '@tiptap/extension-highlight';
+      import TextAlign from '@tiptap/extension-text-align';
+      import Placeholder from '@tiptap/extension-placeholder';
+
+      document.getElementById('article-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const data = {
+          title: formData.get('title'),
+          excerpt: formData.get('excerpt'),
+          content: formData.get('content'),
+          date: formData.get('date'),
+          category: formData.get('category'),
+          image: formData.get('image'),
+          slug: formData.get('slug'),
+          author: formData.get('author'),
+          linkedinUrl: formData.get('linkedinUrl'),
+          featured: formData.get('featured') === 'on',
+          published: formData.get('published') === 'on',
+          accessLevel: formData.get('accessLevel'),
+        };
+
+        if (!data.title) {
+          showError('Le titre est requis');
+          return;
+        }
+        if (!data.slug) {
+          showError('Le slug est requis');
+          return;
+        }
+        if (!data.content) {
+          showError('Le contenu est requis');
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/admin/articles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            window.location.href = '/admin';
+          } else {
+            const error = await response.json();
+            showError(error.error || 'Erreur lors de la création');
+          }
+        } catch (err) {
+          showError('Erreur réseau');
+        }
+      });
+
+      function showError(message) {
+        const errorEl = document.getElementById('error-message');
+        errorEl.textContent = message;
+        errorEl.classList.remove('hidden');
+      }
+
+      // Auto-generate slug from title
+      document.getElementById('title')?.addEventListener('input', (e) => {
+        const slug = e.target.value
+          .toLowerCase()
+          .trim()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-');
+        document.getElementById('slug').value = slug;
+      });
+
+      // Set today's date
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('date').valueAsDate = new Date(today);
+    </script>
+  </body>
+</html>
