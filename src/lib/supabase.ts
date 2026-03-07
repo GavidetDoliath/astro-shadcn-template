@@ -10,11 +10,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: false,
-  },
-});
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * Server-side Supabase client (for API routes, SSR)

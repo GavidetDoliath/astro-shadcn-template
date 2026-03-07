@@ -1,5 +1,5 @@
 // src/lib/articles.ts
-import { supabase } from './supabase';
+import { supabase } from '../db/supabase';
 
 export interface Article {
   id: string;
@@ -13,9 +13,6 @@ export interface Article {
   linkedinUrl?: string;
   featured?: boolean;
   published?: boolean;
-  access_level?: 'public' | 'subscriber_free' | 'subscriber_paid';
-  author_id?: string;
-  content?: string;
 }
 
 /**

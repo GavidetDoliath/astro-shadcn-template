@@ -1,18 +1,19 @@
 ---
 // src/pages/lettres/[slug].astro
 // Page article détaillée avec ToC, reading time, etc.
-// SSR required for content gating (auth-aware)
-
-export const prerender = false; // SSR required for access control
 
 import { supabase } from '@/db/supabase';
 import { getArticles, getArticlesByCategory, getArticleBySlug } from '@/lib/articles';
-import { canAccessArticle } from '@/lib/auth';
 import Layout from '@/layouts/Layout.astro';
-import AccessGate from '@/components/auth/AccessGate.astro';
+
+export async function getStaticPaths() {
+  const articles = await getArticles();
+  return articles.map(article => ({
+    params: { slug: article.slug },
+  }));
+}
 
 const { slug } = Astro.params;
-const user = Astro.locals.user;
 
 // Récupère l'article
 const article = await getArticleBySlug(slug || '');
@@ -21,10 +22,6 @@ const article = await getArticleBySlug(slug || '');
 if (!article) {
   return Astro.response.write('Not found', { status: 404 });
 }
-
-// Vérify access to article
-const accessLevel = article.access_level || 'public';
-const hasAccess = canAccessArticle(user, accessLevel);
 
 // Récupère articles similaires (même catégorie, sauf celui-ci)
 const relatedArticles = await getArticlesByCategory(article.category);
@@ -139,11 +136,7 @@ const meta = {
     <div class="article__grid">
       <!-- Main Content -->
       <main class="article__main">
-        {!hasAccess ? (
-          <AccessGate accessLevel={accessLevel} user={user} excerpt={article.excerpt} />
-        ) : (
-          <div class="article__content" set:html={contentHtml} />
-        )}
+        <div class="article__content" set:html={contentHtml} />
 
         <!-- Meta Footer -->
         <footer class="article__footer">

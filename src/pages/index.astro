@@ -1,6 +1,6 @@
 ---
 // src/pages/index.astro
-import HeroSection from '@/components/HeroSection.astro';
+import HeroSection from '@/components/HeroSection';
 import ManifestoSection from '@/components/ManifestoSection.astro';
 import ArticlesSection from '@/components/ArticlesSection.astro';
 import Layout from '@/layouts/Layout.astro';
@@ -14,7 +14,7 @@ const meta: PageMeta = {
 ---
 
 <Layout {...meta}>
-  <HeroSection />
+  <HeroSection client:load />
   <ManifestoSection />
   <ArticlesSection />
 </Layout>
