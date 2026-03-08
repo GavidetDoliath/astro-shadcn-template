@@ -60,12 +60,18 @@ import ThemeToggle from '@/components/ThemeToggle';
         font-size: 0.65rem;
         letter-spacing: 0.2em;
         text-transform: uppercase;
-        color: var(--parchemin);
+        color: #000000;
         text-decoration: none;
         transition: color 0.2s;
 
         &:hover {
           color: var(--sang);
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        a {
+          color: var(--parchemin);
         }
       }
     }
