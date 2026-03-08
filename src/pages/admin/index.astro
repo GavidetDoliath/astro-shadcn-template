@@ -19,6 +19,7 @@ import '@/styles/global.css';
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <h1 class="text-2xl font-bold">La Déraison Admin</h1>
           <div class="flex gap-4">
+            <a href="/admin/journals" class="text-sm hover:text-muted-foreground transition-colors">Journaux</a>
             <a href="/" class="hover:text-muted-foreground transition-colors">← Retour au site</a>
             <form method="POST" action="/api/admin/auth/logout" id="logout-form" style="display:inline">
               <button type="submit" class="text-destructive hover:text-destructive/80 transition-colors">Déconnexion</button>

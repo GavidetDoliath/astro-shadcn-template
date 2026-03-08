@@ -1,0 +1,33 @@
+---
+export const prerender = false;
+import { getApiUser as getUser } from '@/lib/auth';
+import { getJournalById } from '@/lib/journals';
+import { getArticles } from '@/lib/articles';
+import { JournalEditor } from '@/components/admin/editor/JournalEditor';
+import '@/styles/global.css';
+
+const user = await getUser(Astro.request);
+if (!user || user.role !== 'admin') return Astro.redirect('/admin/login');
+
+const id = Astro.url.searchParams.get('id');
+if (!id) return Astro.redirect('/admin/journals');
+
+const journal = await getJournalById(id);
+if (!journal) return Astro.redirect('/admin/journals');
+
+const articles = await getArticles(100).catch(() => []);
+const articleList = articles.map((a) => ({ id: a.id, title: a.title, excerpt: a.excerpt ?? undefined }));
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{journal.title} · Éditeur</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body class="overflow-hidden bg-background text-foreground">
+    <JournalEditor client:load journal={journal} articles={articleList} />
+  </body>
+</html>
