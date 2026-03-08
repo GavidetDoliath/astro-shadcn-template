@@ -138,6 +138,7 @@ export default function HeroSection() {
           object-fit: contain;
           max-width: 70%;
           max-height: 70%;
+          border-radius: 1rem;
         }
 
         @media (max-width: 768px) {
