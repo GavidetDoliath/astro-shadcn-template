@@ -228,6 +228,7 @@ export default function HeroSection() {
           transition: background 0.2s, color 0.2s;
           text-decoration: none;
           display: inline-block;
+          border-radius: 0.5rem;
         }
         .btn-primary::after {
           content: '';
@@ -238,6 +239,7 @@ export default function HeroSection() {
           height: 100%;
           border: 1px solid var(--sang);
           transition: transform 0.2s;
+          border-radius: 0.5rem;
         }
         .btn-primary:hover {
           background: var(--sang);
@@ -260,6 +262,7 @@ export default function HeroSection() {
           border-bottom: 1px solid rgba(212,201,176,0.3);
           transition: border-color 0.2s, color 0.2s;
           text-decoration: none;
+          border-radius: 0.25rem;
         }
         .btn-ghost:hover {
           color: var(--parchemin);
