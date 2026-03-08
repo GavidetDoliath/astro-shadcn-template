@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import gunLight from '@/assets/hero_section_gun.png';
 import gunDark from '@/assets/hero_section_gun_dark.png';
-import ThemeToggle from '@/components/ThemeToggle';
-
 export default function HeroSection() {
   const [loaded, setLoaded] = useState(false);
   const [scrollY, setScrollY] = useState(0);
@@ -54,7 +52,7 @@ export default function HeroSection() {
           display: grid;
           grid-template-columns: 1fr 1fr;
           align-items: center;
-          padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 8vw, 8rem);
+          padding: 0 clamp(1.5rem, 8vw, 8rem) clamp(4rem, 10vw, 8rem);
           gap: clamp(2rem, 6vw, 4rem);
         }
 
@@ -67,9 +65,10 @@ export default function HeroSection() {
 
         .hero__image-section {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
           height: 100%;
+          padding-top: 1.5rem;
         }
 
         .hero__label {
@@ -315,59 +314,12 @@ export default function HeroSection() {
           pointer-events: none;
         }
 
-        .hero__nav {
-          position: absolute;
-          top: clamp(1.5rem, 4vh, 3rem);
-          left: clamp(1.5rem, 8vw, 8rem);
-          z-index: 20;
-          display: flex;
-          align-items: center;
-          gap: 2.5rem;
-          opacity: 0;
-          transform: translateY(-8px);
-          transition: opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s;
-        }
-        .hero__nav.visible { opacity: 1; transform: translateY(0); }
-
-        .hero__logo {
-          font-family: var(--font-serif);
-          font-size: 0.95rem;
-          font-weight: 900;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          color: var(--parchemin);
-          text-decoration: none;
-        }
-        .hero__logo span {
-          color: var(--sang);
-        }
-
-        .hero__nav-links {
-          display: flex;
-          gap: 1.75rem;
-          list-style: none;
-        }
-        .hero__nav-links a {
-          font-family: var(--font-mono);
-          font-size: 0.65rem;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          color: rgba(212,201,176,0.5);
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-        .hero__nav-links a:hover { color: var(--parchemin); }
-
-        .hero__nav > .theme-toggle {
-          margin-left: auto;
-        }
-
         .hero__bottom-bar {
           position: absolute;
           bottom: 0;
           left: 0; right: 0;
           z-index: 10;
-          padding: 0.6rem clamp(1.5rem, 8vw, 8rem);
+          padding: 0.6rem clamp(1.5rem, 8vw, 8rem) 1.8rem;
           border-top: 1px solid var(--gris-presse);
           display: flex;
           justify-content: space-between;
@@ -390,26 +342,15 @@ export default function HeroSection() {
         }
 
         @media (max-width: 640px) {
-          .hero__nav-links { display: none; }
           .hero__issue { display: none; }
           .hero__scroll { display: none; }
+          .hero__bottom-bar { padding-bottom: 5rem; }
         }
       `}</style>
 
       <section className="hero" ref={heroRef}>
 
         <div className="hero__issue" aria-hidden="true">I</div>
-
-        <nav className={`hero__nav ${loaded ? 'visible' : ''}`}>
-          <a href="/" className="hero__logo">
-            La <span>Déraison</span>
-          </a>
-          <ul className="hero__nav-links">
-            <li><a href="/lettres">Les Lettres</a></li>
-            <li><a href="/abonnement">La Fosse</a></li>
-          </ul>
-          <ThemeToggle />
-        </nav>
 
         <div className="hero__content">
           <div className="hero__text-section">
@@ -436,7 +377,7 @@ export default function HeroSection() {
 
             <div className={`hero__cta-group ${loaded ? 'visible' : ''}`}>
               <a href="/abonnement" className="btn-primary">Entrer dans la fosse</a>
-              <a href="/lettres" className="btn-ghost">Lire les lettres →</a>
+              <a href="/lettres" className="btn-primary">Lire les lettres →</a>
             </div>
           </div>
 

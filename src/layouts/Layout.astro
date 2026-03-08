@@ -7,14 +7,13 @@ import '@/styles/global.css';
 import type { PageMeta } from '@/lib/constants';
 
 const props = Astro.props as PageMeta;
-const isHomepage = Astro.url.pathname === '/';
 ---
 
 <!doctype html>
 <html lang='fr'>
   <Head {...props} />
   <body>
-    {!isHomepage && <Header />}
+    <Header />
     <slot />
     <Footer />
   </body>
