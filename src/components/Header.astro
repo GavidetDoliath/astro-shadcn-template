@@ -1,6 +1,7 @@
 ---
 // src/components/Header.astro
 import { SITE_CONFIG } from '@/lib/constants';
+import ThemeToggle from '@/components/ThemeToggle';
 ---
 
 <header class='header sticky top-0 z-40 w-full border-b' style='border-color: var(--gris-presse); background: var(--noir);'>
@@ -13,10 +14,10 @@ import { SITE_CONFIG } from '@/lib/constants';
     <nav class='header__nav'>
       <ul class='header__nav-links'>
         <li><a href='/lettres'>Les Lettres</a></li>
-        <li><a href='/pamphlets'>Pamphlets</a></li>
-        <li><a href='/apropos'>La Fosse</a></li>
+        <li><a href='/abonnement'>La Fosse</a></li>
       </ul>
     </nav>
+    <ThemeToggle client:load />
   </div>
 </header>
 

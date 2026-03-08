@@ -1,16 +1,32 @@
 import { useEffect, useRef, useState } from 'react';
+import gunLight from '@/assets/hero_section_gun.png';
+import gunDark from '@/assets/hero_section_gun_dark.png';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function HeroSection() {
   const [loaded, setLoaded] = useState(false);
   const [scrollY, setScrollY] = useState(0);
-  const heroRef = useRef(null);
+  const [isDark, setIsDark] = useState(false);
+  const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setLoaded(true), 300);
     const handleScroll = () => setScrollY(window.scrollY);
+
+    // Detect dark mode
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+
+    // Listen for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       clearTimeout(timer);
+      observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
@@ -35,11 +51,25 @@ export default function HeroSection() {
           position: relative;
           z-index: 10;
           height: 100%;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          align-items: center;
+          padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 8vw, 8rem);
+          gap: clamp(2rem, 6vw, 4rem);
+        }
+
+        .hero__text-section {
           display: flex;
           flex-direction: column;
           justify-content: center;
           align-items: flex-start;
-          padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 8vw, 8rem);
+        }
+
+        .hero__image-section {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
         }
 
         .hero__label {
@@ -81,6 +111,51 @@ export default function HeroSection() {
           color: var(--parchemin);
           margin-bottom: clamp(1.5rem, 3vh, 2.5rem);
           max-width: 100%;
+        }
+
+        .hero__image-wrapper {
+          flex-shrink: 0;
+          overflow: hidden;
+          border-radius: 1rem;
+          opacity: 0;
+          transform: scale(0.95);
+          transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.1s, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 1.1s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+        }
+
+        .hero__image-wrapper.visible {
+          opacity: 1;
+          transform: scale(1);
+        }
+
+        .hero__image-wrapper img {
+          display: block;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          max-width: 70%;
+          max-height: 70%;
+        }
+
+        @media (max-width: 768px) {
+          .hero__content {
+            grid-template-columns: 1fr;
+            padding-bottom: clamp(1.5rem, 8vh, 3rem);
+          }
+
+          .hero__image-section {
+            max-height: 250px;
+            margin-bottom: 0.5rem;
+            margin-top: -1rem;
+          }
+
+          .hero__image-wrapper img {
+            max-width: 100%;
+            max-height: 220px;
+          }
         }
 
         .hero__title-line {
@@ -279,6 +354,10 @@ export default function HeroSection() {
         }
         .hero__nav-links a:hover { color: var(--parchemin); }
 
+        .hero__nav > .theme-toggle {
+          margin-left: auto;
+        }
+
         .hero__bottom-bar {
           position: absolute;
           bottom: 0;
@@ -323,37 +402,48 @@ export default function HeroSection() {
           </a>
           <ul className="hero__nav-links">
             <li><a href="/lettres">Les Lettres</a></li>
-            <li><a href="/pamphlets">Pamphlets</a></li>
-            <li><a href="/apropos">La Fosse</a></li>
+            <li><a href="/abonnement">La Fosse</a></li>
           </ul>
+          <ThemeToggle />
         </nav>
 
         <div className="hero__content">
+          <div className="hero__text-section">
+            <div className={`hero__rule ${loaded ? 'visible' : ''}`} />
 
-          <div className={`hero__rule ${loaded ? 'visible' : ''}`} />
-
-          <h1 className="hero__title">
-            <span className="hero__title-line">
-              <span className={`hero__title-inner hero__title-inner--delay1 ${loaded ? 'visible' : ''}`}>
-                La Lettre
+            <h1 className="hero__title">
+              <span className="hero__title-line">
+                <span className={`hero__title-inner hero__title-inner--delay1 ${loaded ? 'visible' : ''}`}>
+                  La Lettre
+                </span>
               </span>
-            </span>
-            <span className="hero__title-line">
-              <span className={`hero__title-inner hero__title-inner--delay2 hero__title-inner--italic ${loaded ? 'visible' : ''}`}>
-                de la déraison.
+              <span className="hero__title-line">
+                <span className={`hero__title-inner hero__title-inner--delay2 hero__title-inner--italic ${loaded ? 'visible' : ''}`}>
+                  de la déraison.
+                </span>
               </span>
-            </span>
-          </h1>
+            </h1>
 
-          <p className={`hero__tagline ${loaded ? 'visible' : ''}`}>
-            Des textes violents. Stylisés. Parfois injustes.<br />
-            Toujours écrits. Un pamphlet par jour.<br />
-            Ici, pas de storytelling — de la langue.
-          </p>
+            <p className={`hero__tagline ${loaded ? 'visible' : ''}`}>
+              Des textes violents. Stylisés. Parfois injustes.<br />
+              Toujours écrits. Un pamphlet par jour.<br />
+              Ici, pas de storytelling — de la langue.
+            </p>
 
-          <div className={`hero__cta-group ${loaded ? 'visible' : ''}`}>
-            <a href="/lire" className="btn-primary">Entrer dans la fosse</a>
-            <a href="/soutenir" className="btn-ghost">Devenir complice →</a>
+            <div className={`hero__cta-group ${loaded ? 'visible' : ''}`}>
+              <a href="/abonnement" className="btn-primary">Entrer dans la fosse</a>
+              <a href="/lettres" className="btn-ghost">Lire les lettres →</a>
+            </div>
+          </div>
+
+          <div className="hero__image-section">
+            <div className={`hero__image-wrapper ${loaded ? 'visible' : ''}`}>
+              <img
+                src={isDark ? gunDark.src : gunLight.src}
+                alt="Illustration arme"
+                loading="eager"
+              />
+            </div>
           </div>
         </div>
 

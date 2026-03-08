@@ -1,27 +1,12 @@
 ---
 // src/pages/lettres/index.astro
-// Page listing all articles with filters
+// Page listing all articles
 
-import { getArticles, getArticlesByCategory } from '@/lib/articles';
+import { getArticles } from '@/lib/articles';
 import Layout from '@/layouts/Layout.astro';
 
-// Get category filter from query params
-const category = Astro.url.searchParams.get('cat') as 'lettre' | 'pamphlet' | 'fosse' | null;
-
-// Fetch articles based on category
-let articles;
-if (category && ['lettre', 'pamphlet', 'fosse'].includes(category)) {
-  articles = await getArticlesByCategory(category);
-} else {
-  articles = await getArticles();
-}
-
-// Category labels
-const categoryLabels = {
-  lettre: '📝 Lettres',
-  pamphlet: '📢 Pamphlets',
-  fosse: '🕳️ La Fosse',
-};
+// Fetch all articles
+const articles = await getArticles();
 
 const meta = {
   title: 'Les Lettres · La Déraison',
@@ -37,24 +22,6 @@ const meta = {
         <h1 class="articles-listing__title">Les Lettres</h1>
         <p class="articles-listing__subtitle">Tous nos articles</p>
       </header>
-
-      <!-- Filters -->
-      <nav class="articles-listing__filters">
-        <a href="/lettres" class={`articles-listing__filter ${!category ? 'active' : ''}`}>
-          Tous ({articles.length})
-        </a>
-        {Object.entries(categoryLabels).map(([cat, label]) => {
-          const count = articles.filter(a => a.category === cat).length;
-          return (
-            <a
-              href={`/lettres?cat=${cat}`}
-              class={`articles-listing__filter ${category === cat ? 'active' : ''}`}
-            >
-              {label} ({count})
-            </a>
-          );
-        })}
-      </nav>
 
       <!-- Rule -->
       <div class="articles-listing__rule" />
@@ -75,9 +42,6 @@ const meta = {
                 <a href={`/lettres/${article.slug}`} class="articles-listing__link">
                   <div class="articles-listing__item-header">
                     <h2 class="articles-listing__item-title">{article.title}</h2>
-                    <span class="articles-listing__item-category">
-                      {categoryLabels[article.category]}
-                    </span>
                   </div>
 
                   <p class="articles-listing__item-excerpt">{article.excerpt}</p>
@@ -149,37 +113,6 @@ const meta = {
     margin: 0;
   }
 
-  .articles-listing__filters {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: 2rem;
-  }
-
-  .articles-listing__filter {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--beige-pali);
-    text-decoration: none;
-    padding: 0.6rem 1rem;
-    border: 1px solid rgb(139 37 0 / 0.3);
-    transition: all 0.2s;
-    cursor: pointer;
-
-    &:hover {
-      border-color: rgb(139 37 0 / 0.6);
-      color: var(--parchemin);
-    }
-
-    &.active {
-      background: var(--sang);
-      color: var(--parchemin);
-      border-color: var(--sang);
-    }
-  }
-
   .articles-listing__rule {
     width: 3rem;
     height: 2px;
@@ -233,17 +166,6 @@ const meta = {
     transition: color 0.2s;
   }
 
-  .articles-listing__item-category {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--sang);
-    padding: 0.25rem 0.6rem;
-    border: 1px solid rgb(192 57 43 / 0.3);
-    white-space: nowrap;
-  }
-
   .articles-listing__item-excerpt {
     font-family: var(--font-body);
     font-style: italic;
@@ -292,21 +214,6 @@ const meta = {
 
     .articles-listing__title {
       font-size: clamp(2rem, 5vw, 2.5rem);
-    }
-
-    .articles-listing__filters {
-      gap: 0.5rem;
-    }
-
-    .articles-listing__filter {
-      font-size: 0.6rem;
-      padding: 0.5rem 0.75rem;
-    }
-
-    .articles-listing__item-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
     }
   }
 </style>
