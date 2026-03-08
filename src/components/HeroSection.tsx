@@ -344,7 +344,7 @@ export default function HeroSection() {
         @media (max-width: 640px) {
           .hero__issue { display: none; }
           .hero__scroll { display: none; }
-          .hero__bottom-bar { padding-bottom: 5rem; }
+          .hero__bottom-bar { padding-bottom: 0.5rem; }
         }
       `}</style>
 
