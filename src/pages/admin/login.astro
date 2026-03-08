@@ -1,0 +1,100 @@
+---
+export const prerender = false;
+import { getApiUser } from '@/lib/auth';
+import '@/styles/global.css';
+
+const user = await getApiUser(Astro.request);
+if (user) return Astro.redirect('/admin');
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin · Connexion</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body class="bg-background text-foreground">
+    <div class="flex min-h-screen items-center justify-center px-4">
+      <div class="w-full max-w-sm">
+        <div class="mb-8 text-center">
+          <h1 class="text-2xl font-bold">La Déraison Admin</h1>
+          <p class="mt-1 text-sm text-muted-foreground">Connectez-vous pour accéder au tableau de bord</p>
+        </div>
+
+        <form id="login-form" class="space-y-4">
+          <div id="error-msg" class="hidden rounded-md bg-destructive/10 p-3 text-sm text-destructive"></div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              autocomplete="email"
+              class="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <div>
+            <label for="password" class="block text-sm font-medium">Mot de passe</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              required
+              autocomplete="current-password"
+              class="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="submit-btn"
+            class="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            Se connecter
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('login-form') as HTMLFormElement;
+      const errorMsg = document.getElementById('error-msg') as HTMLDivElement;
+      const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorMsg.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Connexion...';
+
+        const data = new FormData(form);
+        try {
+          const res = await fetch('/api/admin/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: data.get('email'), password: data.get('password') }),
+          });
+
+          if (res.ok) {
+            window.location.href = '/admin';
+          } else {
+            const json = await res.json();
+            errorMsg.textContent = json.error || 'Erreur de connexion';
+            errorMsg.classList.remove('hidden');
+          }
+        } catch {
+          errorMsg.textContent = 'Erreur réseau';
+          errorMsg.classList.remove('hidden');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Se connecter';
+        }
+      });
+    </script>
+  </body>
+</html>

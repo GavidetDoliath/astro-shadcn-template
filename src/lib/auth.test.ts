@@ -3,7 +3,11 @@ import { hasRole, canAccessArticle, getApiUser, type UserProfile } from './auth'
 
 // Mock Supabase
 vi.mock('@/lib/supabase', () => ({
-  getServerSupabase: vi.fn(),
+  supabase: {
+    auth: {
+      getUser: vi.fn(),
+    },
+  },
 }));
 
 describe('auth.ts', () => {
@@ -118,101 +122,42 @@ describe('auth.ts', () => {
 
   describe('getApiUser', () => {
     it('returns null if no cookie present', async () => {
-      const request = new Request('http://localhost/api/test', {
-        method: 'GET',
-      });
+      const request = new Request('http://localhost/api/test', { method: 'GET' });
       const result = await getApiUser(request);
       expect(result).toBeNull();
     });
 
     it('returns null if access token is invalid', async () => {
-      const { getServerSupabase } = await import('@/lib/supabase');
-      vi.mocked(getServerSupabase).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: null },
-            error: new Error('Invalid token'),
-          }),
-        },
-        from: vi.fn(),
-      } as any);
+      const { supabase } = await import('@/lib/supabase');
+      vi.mocked(supabase.auth.getUser).mockResolvedValue({
+        data: { user: null },
+        error: new Error('Invalid token') as any,
+      });
 
       const request = new Request('http://localhost/api/test', {
         method: 'GET',
-        headers: {
-          cookie: 'sb-access-token=invalid-token',
-        },
+        headers: { cookie: 'sb-access-token=invalid-token' },
       });
       const result = await getApiUser(request);
       expect(result).toBeNull();
     });
 
-    it('returns null if profile fetch fails', async () => {
-      const { getServerSupabase } = await import('@/lib/supabase');
-      vi.mocked(getServerSupabase).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: { id: 'user-1', email: 'user@example.com' } },
-            error: null,
-          }),
-        },
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          single: vi.fn().mockResolvedValue({
-            data: null,
-            error: new Error('Profile not found'),
-          }),
-        }),
-      } as any);
-
-      const request = new Request('http://localhost/api/test', {
-        method: 'GET',
-        headers: {
-          cookie: 'sb-access-token=valid-token',
-        },
+    it('returns user with admin role if auth succeeds', async () => {
+      const { supabase } = await import('@/lib/supabase');
+      vi.mocked(supabase.auth.getUser).mockResolvedValue({
+        data: { user: { id: 'user-1', email: 'admin@example.com' } as any },
+        error: null,
       });
-      const result = await getApiUser(request);
-      expect(result).toBeNull();
-    });
-
-    it('returns user profile if auth and profile lookup succeed', async () => {
-      const { getServerSupabase } = await import('@/lib/supabase');
-      vi.mocked(getServerSupabase).mockReturnValue({
-        auth: {
-          getUser: vi.fn().mockResolvedValue({
-            data: { user: { id: 'user-1', email: 'user@example.com' } },
-            error: null,
-          }),
-        },
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-          single: vi.fn().mockResolvedValue({
-            data: {
-              id: 'user-1',
-              email: 'user@example.com',
-              role: 'subscriber_paid',
-              display_name: 'John Doe',
-              stripe_customer_id: 'cus_123',
-            },
-            error: null,
-          }),
-        }),
-      } as any);
 
       const request = new Request('http://localhost/api/test', {
         method: 'GET',
-        headers: {
-          cookie: 'sb-access-token=valid-token',
-        },
+        headers: { cookie: 'sb-access-token=valid-token' },
       });
       const result = await getApiUser(request);
       expect(result).not.toBeNull();
       expect(result?.id).toBe('user-1');
-      expect(result?.email).toBe('user@example.com');
-      expect(result?.role).toBe('subscriber_paid');
-      expect(result?.display_name).toBe('John Doe');
+      expect(result?.email).toBe('admin@example.com');
+      expect(result?.role).toBe('admin');
     });
   });
 });

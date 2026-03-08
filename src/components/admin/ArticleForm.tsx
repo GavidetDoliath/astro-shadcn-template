@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { RichTextEditor } from './RichTextEditor';
 
 export interface ArticleFormData {
@@ -46,6 +46,8 @@ export function ArticleForm({
 
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -74,6 +76,30 @@ export function ArticleForm({
         ...prev,
         slug: generateSlug(title),
       }));
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setError('');
+
+    try {
+      const body = new FormData();
+      body.append('file', file);
+
+      const res = await fetch('/api/admin/upload', { method: 'POST', body });
+      const json = await res.json();
+
+      if (!res.ok) throw new Error(json.error || "Erreur lors de l'upload");
+
+      setFormData((prev) => ({ ...prev, image: json.url }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -230,20 +256,48 @@ export function ArticleForm({
         />
       </div>
 
-      {/* Image URL */}
+      {/* Image Upload */}
       <div>
-        <label htmlFor="image" className="block text-sm font-medium">
-          URL Image
-        </label>
-        <input
-          type="url"
-          id="image"
-          name="image"
-          value={formData.image}
-          onChange={handleInputChange}
-          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
-          placeholder="https://..."
-        />
+        <label className="block text-sm font-medium">Image</label>
+        <div className="mt-1 flex flex-col gap-2">
+          {formData.image && (
+            <div className="relative w-40">
+              <img src={formData.image} alt="Aperçu" className="h-24 w-40 rounded-md object-cover border border-border" />
+              <button
+                type="button"
+                onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                className="absolute -right-2 -top-2 rounded-full bg-destructive p-0.5 text-white"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="rounded-md border border-border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
+            >
+              {isUploading ? 'Upload...' : 'Choisir une image'}
+            </button>
+            {formData.image && (
+              <input
+                type="text"
+                value={formData.image}
+                readOnly
+                className="flex-1 rounded-md border border-input bg-muted px-3 py-2 text-xs text-muted-foreground"
+              />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* LinkedIn URL */}

@@ -30,3 +30,20 @@ export function getServerSupabase() {
     },
   });
 }
+
+/**
+ * Authenticated Supabase client using a user's JWT token.
+ * DB queries run in the user's auth context (RLS applies).
+ * No service role key required.
+ */
+export function getAuthedSupabase(accessToken: string) {
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    global: {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}

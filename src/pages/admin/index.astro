@@ -1,6 +1,7 @@
 ---
-import '@/styles/global.css';
+export const prerender = false;
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
+import '@/styles/global.css';
 ---
 
 <!doctype html>
@@ -19,55 +20,17 @@ import { AdminDashboard } from '@/components/admin/AdminDashboard';
           <h1 class="text-2xl font-bold">La Déraison Admin</h1>
           <div class="flex gap-4">
             <a href="/" class="hover:text-muted-foreground transition-colors">← Retour au site</a>
-            <button id="logout-btn" class="text-destructive hover:text-destructive/80 transition-colors">Déconnexion</button>
+            <form method="POST" action="/api/admin/auth/logout" id="logout-form" style="display:inline">
+              <button type="submit" class="text-destructive hover:text-destructive/80 transition-colors">Déconnexion</button>
+            </form>
           </div>
         </div>
       </nav>
 
       <!-- Main Content -->
       <div class="mx-auto max-w-6xl px-6 py-8">
-        <div id="admin-container"></div>
+        <AdminDashboard client:load />
       </div>
     </div>
-
-    <script>
-      import { AdminDashboard } from '@/components/admin/AdminDashboard';
-      import { createRoot } from 'react-dom/client';
-      import React from 'react';
-
-      // Check authentication
-      async function checkAuth() {
-        try {
-          const response = await fetch('/api/admin/articles');
-          if (response.status === 401) {
-            window.location.href = '/admin/login';
-            return false;
-          }
-          return true;
-        } catch {
-          window.location.href = '/admin/login';
-          return false;
-        }
-      }
-
-      // Mount React component
-      async function init() {
-        if (!(await checkAuth())) return;
-
-        const container = document.getElementById('admin-container');
-        if (container) {
-          const root = createRoot(container);
-          root.render(React.createElement(AdminDashboard));
-        }
-
-        // Logout handler
-        document.getElementById('logout-btn')?.addEventListener('click', async () => {
-          await fetch('/api/admin/auth/logout', { method: 'POST' });
-          window.location.href = '/';
-        });
-      }
-
-      init();
-    </script>
   </body>
 </html>

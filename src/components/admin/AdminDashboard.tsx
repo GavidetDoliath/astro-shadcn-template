@@ -23,7 +23,8 @@ export function AdminDashboard() {
       const response = await fetch('/api/admin/articles');
       if (response.ok) {
         const data = await response.json();
-        setArticles(data);
+        // Normalize DB column names to form field names
+        setArticles(data.map((a: any) => ({ ...a, linkedinUrl: a.linkedinurl, accessLevel: a.access_level })));
       }
     } catch (err) {
       console.error('Error loading articles:', err);
