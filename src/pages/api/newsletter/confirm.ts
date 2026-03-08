@@ -1,15 +1,10 @@
 import type { APIRoute } from 'astro';
+import { getServerSupabase } from '@/lib/supabase';
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
+export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    if (!supabaseUrl) {
-      return new Response(JSON.stringify({ error: 'Supabase not configured' }), {
-        status: 500,
-      });
-    }
-
     const url = new URL(request.url);
     const token = url.searchParams.get('token');
 
@@ -17,21 +12,40 @@ export const GET: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Token is required' }), { status: 400 });
     }
 
-    // Call Supabase Edge Function
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/newsletter-confirm?token=${encodeURIComponent(token)}`,
-      {
-        method: 'GET',
-      }
-    );
+    const supabase = getServerSupabase();
 
-    const data = await response.json();
+    // Find subscription by token
+    const { data: subscription, error: queryError } = await supabase
+      .from('newsletter_subscriptions')
+      .select('*')
+      .eq('confirmation_token', token)
+      .single();
 
-    if (!response.ok) {
-      return new Response(JSON.stringify(data), { status: response.status });
+    if (queryError || !subscription) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), { status: 404 });
     }
 
-    return new Response(JSON.stringify(data), {
+    // Check if token has expired
+    if (subscription.token_expires_at && new Date(subscription.token_expires_at) < new Date()) {
+      return new Response(JSON.stringify({ error: 'Token has expired' }), { status: 400 });
+    }
+
+    // Update status to confirmed
+    const { error: updateError } = await supabase
+      .from('newsletter_subscriptions')
+      .update({
+        status: 'confirmed',
+        confirmation_token: null,
+        token_expires_at: null,
+      })
+      .eq('id', subscription.id);
+
+    if (updateError) {
+      console.error('Database error:', updateError);
+      return new Response(JSON.stringify({ error: 'Failed to confirm subscription' }), { status: 500 });
+    }
+
+    return new Response(JSON.stringify({ message: 'Email confirmed successfully' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

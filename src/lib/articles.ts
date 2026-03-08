@@ -1,5 +1,5 @@
 // src/lib/articles.ts
-import { supabase } from '../db/supabase';
+import { supabase } from '@/lib/supabase';
 
 export interface Article {
   id: string;

@@ -1,40 +1,37 @@
 import type { APIRoute } from 'astro';
+import Stripe from 'stripe';
+import { getApiUser } from '@/lib/auth';
+import { getServerSupabase } from '@/lib/supabase';
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
+const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY || '');
+const siteUrl = import.meta.env.SITE_URL || 'http://localhost:4000';
+
+export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    if (!supabaseUrl) {
-      return new Response(JSON.stringify({ error: 'Supabase not configured' }), {
-        status: 500,
-      });
-    }
-
-    // Get access token from cookies
-    const cookie = request.headers.get('cookie');
-    const accessTokenMatch = cookie?.match(/sb-access-token=([^;]+)/);
-    const accessToken = accessTokenMatch?.[1];
-
-    if (!accessToken) {
+    // Authenticate user
+    const user = await getApiUser(request);
+    if (!user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
     }
 
-    // Call Supabase Edge Function with Bearer token
-    const response = await fetch(`${supabaseUrl}/functions/v1/stripe-portal`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
+    const supabase = getServerSupabase();
 
-    const data = await response.json();
+    // Get Stripe customer ID from profile
+    const { data: profileData } = await supabase.from('profiles').select('stripe_customer_id').eq('id', user.id).single();
 
-    if (!response.ok) {
-      return new Response(JSON.stringify(data), { status: response.status });
+    if (!profileData?.stripe_customer_id) {
+      return new Response(JSON.stringify({ error: 'No Stripe customer found' }), { status: 404 });
     }
 
-    return new Response(JSON.stringify(data), {
+    // Create billing portal session
+    const session = await stripe.billingPortal.sessions.create({
+      customer: profileData.stripe_customer_id,
+      return_url: `${siteUrl}/compte/abonnement`,
+    });
+
+    return new Response(JSON.stringify({ url: session.url }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

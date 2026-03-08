@@ -1,16 +1,11 @@
 import type { APIRoute } from 'astro';
+import { getServerSupabase } from '@/lib/supabase';
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
+export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    if (!supabaseUrl) {
-      return new Response(JSON.stringify({ error: 'Supabase not configured' }), {
-        status: 500,
-      });
-    }
-
-    const { email, token } = await request.json() as { email?: string; token?: string };
+    const { email, token } = (await request.json()) as { email?: string; token?: string };
 
     if (!email && !token) {
       return new Response(
@@ -19,22 +14,33 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Call Supabase Edge Function
-    const response = await fetch(`${supabaseUrl}/functions/v1/newsletter-unsubscribe`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, token }),
-    });
+    const supabase = getServerSupabase();
 
-    const data = await response.json();
+    if (email) {
+      // Unsubscribe by email
+      const { error } = await supabase
+        .from('newsletter_subscriptions')
+        .update({ status: 'unsubscribed' })
+        .eq('email', email.toLowerCase());
 
-    if (!response.ok) {
-      return new Response(JSON.stringify(data), { status: response.status });
+      if (error) {
+        console.error('Database error:', error);
+        return new Response(JSON.stringify({ error: 'Failed to unsubscribe' }), { status: 500 });
+      }
+    } else if (token) {
+      // Unsubscribe by token (one-click unsubscribe)
+      const { error } = await supabase
+        .from('newsletter_subscriptions')
+        .update({ status: 'unsubscribed' })
+        .eq('confirmation_token', token);
+
+      if (error) {
+        console.error('Database error:', error);
+        return new Response(JSON.stringify({ error: 'Failed to unsubscribe' }), { status: 500 });
+      }
     }
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({ message: 'Unsubscribed successfully' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -47,12 +53,6 @@ export const POST: APIRoute = async ({ request }) => {
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    if (!supabaseUrl) {
-      return new Response(JSON.stringify({ error: 'Supabase not configured' }), {
-        status: 500,
-      });
-    }
-
     const url = new URL(request.url);
     const email = url.searchParams.get('email');
     const token = url.searchParams.get('token');
@@ -64,25 +64,33 @@ export const GET: APIRoute = async ({ request }) => {
       );
     }
 
-    // Call Supabase Edge Function with query params
-    const queryString = new URLSearchParams();
-    if (email) queryString.set('email', email);
-    if (token) queryString.set('token', token);
+    const supabase = getServerSupabase();
 
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/newsletter-unsubscribe?${queryString}`,
-      {
-        method: 'GET',
+    if (email) {
+      // Unsubscribe by email
+      const { error } = await supabase
+        .from('newsletter_subscriptions')
+        .update({ status: 'unsubscribed' })
+        .eq('email', email.toLowerCase());
+
+      if (error) {
+        console.error('Database error:', error);
+        return new Response(JSON.stringify({ error: 'Failed to unsubscribe' }), { status: 500 });
       }
-    );
+    } else if (token) {
+      // Unsubscribe by token (one-click unsubscribe)
+      const { error } = await supabase
+        .from('newsletter_subscriptions')
+        .update({ status: 'unsubscribed' })
+        .eq('confirmation_token', token);
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return new Response(JSON.stringify(data), { status: response.status });
+      if (error) {
+        console.error('Database error:', error);
+        return new Response(JSON.stringify({ error: 'Failed to unsubscribe' }), { status: 500 });
+      }
     }
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify({ message: 'Unsubscribed successfully' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

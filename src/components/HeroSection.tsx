@@ -28,85 +28,7 @@ export default function HeroSection() {
           cursor: default;
         }
 
-        /* VIDEO BACKGROUND */
-        .hero__video-wrap {
-          position: absolute;
-          inset: 0;
-          z-index: 0;
-        }
-
-        .hero__video-wrap iframe {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          width: 177.78vh; /* 16:9 */
-          height: 100vh;
-          min-width: 100%;
-          min-height: 56.25vw;
-          transform: translate(-50%, -50%) scale(1.05);
-          pointer-events: none;
-          border: none;
-        }
-
-        /* OVERLAYS */
-        .hero__overlay-base {
-          position: absolute;
-          inset: 0;
-          z-index: 1;
-          background: linear-gradient(
-            to bottom,
-            rgba(10, 8, 5, 0.55) 0%,
-            rgba(10, 8, 5, 0.35) 40%,
-            rgba(10, 8, 5, 0.75) 80%,
-            rgba(10, 8, 5, 1) 100%
-          );
-        }
-
-        /* Grain texture overlay */
-        .hero__grain {
-          position: absolute;
-          inset: 0;
-          z-index: 2;
-          opacity: 0.06;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-          background-size: 200px 200px;
-          pointer-events: none;
-          mix-blend-mode: overlay;
-        }
-
-        /* Vignette */
-        .hero__vignette {
-          position: absolute;
-          inset: 0;
-          z-index: 3;
-          background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%);
-          pointer-events: none;
-        }
-
-        /* Horizontal scratch lines */
-        .hero__lines {
-          position: absolute;
-          inset: 0;
-          z-index: 4;
-          pointer-events: none;
-          overflow: hidden;
-        }
-        .hero__lines::before {
-          content: '';
-          position: absolute;
-          left: 0; right: 0;
-          top: 22%;
-          height: 1px;
-          background: linear-gradient(to right, transparent, rgba(139,37,0,0.4) 30%, rgba(139,37,0,0.4) 70%, transparent);
-        }
-        .hero__lines::after {
-          content: '';
-          position: absolute;
-          left: 8%;
-          top: 0; bottom: 0;
-          width: 1px;
-          background: linear-gradient(to bottom, transparent, rgba(192,57,43,0.15) 20%, rgba(192,57,43,0.15) 80%, transparent);
-        }
+        /* Clean light background - no overlays needed */
 
         /* CONTENT */
         .hero__content {
@@ -286,13 +208,13 @@ export default function HeroSection() {
           font-size: 0.55rem;
           letter-spacing: 0.3em;
           text-transform: uppercase;
-          color: rgba(212,201,176,0.4);
+          color: var(--muted-foreground);
           writing-mode: vertical-rl;
         }
         .hero__scroll-line {
           width: 1px;
           height: 3rem;
-          background: linear-gradient(to bottom, rgba(139,37,0,0.6), transparent);
+          background: linear-gradient(to bottom, var(--sang), transparent);
           animation: scrollPulse 2s ease-in-out infinite;
         }
         @keyframes scrollPulse {
@@ -305,10 +227,10 @@ export default function HeroSection() {
           top: clamp(1.5rem, 4vh, 3rem);
           right: clamp(1.5rem, 4vw, 3rem);
           z-index: 10;
-          font-family: var(--font-serif);
+          font-family: var(--font-sans);
           font-weight: 900;
           font-size: clamp(5rem, 18vw, 18rem);
-          color: rgba(255,255,255,0.02);
+          color: rgba(0, 0, 0, 0.03);
           line-height: 1;
           user-select: none;
           pointer-events: none;
@@ -363,11 +285,11 @@ export default function HeroSection() {
           left: 0; right: 0;
           z-index: 10;
           padding: 0.6rem clamp(1.5rem, 8vw, 8rem);
-          border-top: 1px solid rgba(139,37,0,0.2);
+          border-top: 1px solid var(--gris-presse);
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: linear-gradient(to top, rgba(10,8,5,0.9), transparent);
+          background: linear-gradient(to top, rgba(255,255,255,0.5), transparent);
           opacity: 0;
           transition: opacity 0.8s ease 1.8s;
         }
@@ -377,10 +299,10 @@ export default function HeroSection() {
           font-size: 0.6rem;
           letter-spacing: 0.2em;
           text-transform: uppercase;
-          color: rgba(212,201,176,0.3);
+          color: var(--muted-foreground);
         }
         .hero__bottom-bar strong {
-          color: var(--rouille);
+          color: var(--sang);
           font-weight: normal;
         }
 
@@ -392,11 +314,6 @@ export default function HeroSection() {
       `}</style>
 
       <section className="hero" ref={heroRef}>
-
-        <div className="hero__overlay-base" />
-        <div className="hero__grain" />
-        <div className="hero__vignette" />
-        <div className="hero__lines" />
 
         <div className="hero__issue" aria-hidden="true">I</div>
 

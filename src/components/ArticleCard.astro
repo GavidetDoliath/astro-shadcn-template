@@ -61,18 +61,18 @@ const categoryLabels = {
     position: relative;
     height: 100%;
     background: var(--encre);
-    border: 1px solid rgb(139 37 0 / 0.2);
+    border: 1px solid var(--border);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
 
     &:hover {
-      border-color: rgb(139 37 0 / 0.5);
-      box-shadow: 0 0 0 1px rgba(192, 57, 43, 0.2);
+      border-color: var(--sang);
+      box-shadow: 0 0 0 1px rgba(24, 24, 27, 0.1);
 
       .article-card__overlay {
-        opacity: 0.15;
+        opacity: 0.08;
       }
 
       .article-card__link {
@@ -136,7 +136,7 @@ const categoryLabels = {
   .article-card__overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(192, 57, 43, 0.3) 0%, rgba(139, 37, 0, 0.2) 100%);
+    background: linear-gradient(135deg, rgba(24, 24, 27, 0.15) 0%, rgba(24, 24, 27, 0.08) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
     pointer-events: none;
@@ -165,7 +165,7 @@ const categoryLabels = {
     text-transform: uppercase;
     color: var(--sang);
     padding: 0.25rem 0.5rem;
-    border: 1px solid rgb(192 57 43 / 0.3);
+    border: 1px solid var(--border);
   }
 
   .article-card__date {

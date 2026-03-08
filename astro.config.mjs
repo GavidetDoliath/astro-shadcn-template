@@ -5,6 +5,7 @@ import { URL } from 'node:url';
 // 外部ライブラリ/フレームワーク
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
+import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
 import glob from 'fast-glob';
 
@@ -29,6 +30,8 @@ export default defineConfig({
   site: process.env.PUBLIC_BASE_URL ? 'https://n-tong009.github.io' : siteUrl,
   base: process.env.PUBLIC_BASE_URL ? process.env.PUBLIC_BASE_URL : baseUrl,
   outDir: process.env.PUBLIC_BASE_URL ? './dist' : outDirUrl,
+  output: 'static',
+  adapter: vercel(),
   compressHTML: false, // htmlを圧縮するか否か デフォルトでは圧縮を解除しています。
   build: {
     // スタイルシートをインライン化するかどうか
