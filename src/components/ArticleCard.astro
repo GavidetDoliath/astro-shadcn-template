@@ -39,7 +39,6 @@ const categoryLabels = {
   <div class="article-card__content">
     <!-- Meta -->
     <div class="article-card__meta">
-      <span class="article-card__category">{categoryLabels[article.category]}</span>
       <span class="article-card__date">{formattedDate}</span>
     </div>
 
@@ -96,6 +95,9 @@ const categoryLabels = {
     }
 
     &--featured {
+      grid-column: span 2;
+      grid-row: span 2;
+
       .article-card__image {
         height: 100%;
         min-height: 400px;
@@ -111,6 +113,15 @@ const categoryLabels = {
 
       .article-card__excerpt {
         -webkit-line-clamp: 3;
+      }
+
+      @media (max-width: 768px) {
+        grid-column: span 1;
+        grid-row: span 1;
+
+        .article-card__image {
+          min-height: 250px;
+        }
       }
     }
   }
@@ -214,6 +225,14 @@ const categoryLabels = {
     text-decoration: none;
     transition: color 0.2s ease, opacity 0.2s ease;
     align-self: flex-start;
+
+    /* Stretched link: rend toute la card cliquable */
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
   }
 
   @media (max-width: 640px) {

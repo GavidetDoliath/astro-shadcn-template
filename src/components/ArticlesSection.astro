@@ -4,7 +4,7 @@ import ArticleCard from '@/components/ArticleCard.astro';
 import { getArticles } from '@/lib/articles';
 
 // Récupère les 6 derniers articles depuis Supabase
-const articles = await getArticles(6, 'featured');
+const articles = await getArticles(8, 'featured');
 ---
 
 <section class="articles">
@@ -19,8 +19,8 @@ const articles = await getArticles(6, 'featured');
     <!-- Bento Grid -->
     <div class="articles__grid">
       {articles.map((article, index) => {
-        // Marquer les 2 premiers articles importants comme "featured"
-        const isFeatured = index < 2;
+        // Seul le 1er article est featured (span 2×2)
+        const isFeatured = index === 0;
         return <ArticleCard article={article} featured={isFeatured} />;
       })}
     </div>
@@ -80,33 +80,12 @@ const articles = await getArticles(6, 'featured');
 
   .articles__grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(3, 300px);
-    gap: clamp(0.75rem, 2vw, 1.5rem);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-auto-rows: 350px;
+    gap: clamp(1rem, 3vw, 2rem);
     margin-bottom: clamp(2.5rem, 6vh, 4rem);
 
-    /*
-      Bento sans trous (4 col × 3 row = 12 cells):
-      ┌──────┬────┬────┐
-      │  1   │ 2  │ 3  │
-      │      ├────┤    │
-      │      │ 4  │    │
-      ├──────┴──┬─┴────┤  ← non, voir ci-dessous
-      └─────────┴──────┘
-
-      ┌─────┬─────┬──┬──┐
-      │  1  │  1  │2 │3 │  rows 1-2
-      │  1  │  1  │4 │3 │
-      ├─────┴─────┼──┴──┤
-      │  5  │  5  │  6  │  row 3
-      └───────────┴─────┘
-    */
-    > :nth-child(1) { grid-column: 1 / 3; grid-row: 1 / 3; }
-    > :nth-child(2) { grid-column: 3 / 4; grid-row: 1 / 2; }
-    > :nth-child(3) { grid-column: 4 / 5; grid-row: 1 / 3; }
-    > :nth-child(4) { grid-column: 3 / 4; grid-row: 2 / 3; }
-    > :nth-child(5) { grid-column: 1 / 3; grid-row: 3 / 4; }
-    > :nth-child(6) { grid-column: 3 / 5; grid-row: 3 / 4; }
+    /* Bento layout: 1er article big (2×2), les autres en 1×1 */
   }
 
   .articles__cta {
@@ -128,45 +107,25 @@ const articles = await getArticles(6, 'featured');
     }
   }
 
-  /* Responsive: tablette — 3 col × 3 rows, sans trous */
-  @media (max-width: 1100px) {
+  /* Responsive: tablette */
+  @media (max-width: 1024px) {
     .articles__grid {
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(3, 260px);
-
-      /*
-        ┌─────┬─────┬──┐
-        │  1  │  1  │2 │  rows 1-2
-        │  1  │  1  │3 │
-        ├──┬──┴──┬──┴──┤
-        │4 │  5  │  6  │  row 3
-        └──┴─────┴─────┘
-      */
-      > :nth-child(1) { grid-column: 1 / 3; grid-row: 1 / 3; }
-      > :nth-child(2) { grid-column: 3 / 4; grid-row: 1 / 2; }
-      > :nth-child(3) { grid-column: 3 / 4; grid-row: 2 / 3; }
-      > :nth-child(4) { grid-column: 1 / 2; grid-row: 3 / 4; }
-      > :nth-child(5) { grid-column: 2 / 3; grid-row: 3 / 4; }
-      > :nth-child(6) { grid-column: 3 / 4; grid-row: 3 / 4; }
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-auto-rows: 300px;
     }
   }
 
-  /* Responsive: mobile — 1 col */
-  @media (max-width: 640px) {
+  /* Responsive: mobile */
+  @media (max-width: 768px) {
     .articles__grid {
       grid-template-columns: 1fr;
-      grid-template-rows: none;
-      grid-auto-rows: 260px;
+      grid-auto-rows: 300px;
+    }
+  }
 
-      > :nth-child(1),
-      > :nth-child(2),
-      > :nth-child(3),
-      > :nth-child(4),
-      > :nth-child(5),
-      > :nth-child(6) {
-        grid-column: auto;
-        grid-row: auto;
-      }
+  @media (max-width: 640px) {
+    .articles__grid {
+      grid-auto-rows: 250px;
     }
   }
 </style>

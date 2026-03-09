@@ -111,7 +111,6 @@ const meta = {
     <!-- Header -->
     <header class="article__header">
       <div class="article__meta-top">
-        <span class="article__category">{categoryLabels[article.category]}</span>
         <span class="article__date">{formattedDate}</span>
         <span class="article__reading-time">{readingTime} min de lecture</span>
       </div>
@@ -140,13 +139,6 @@ const meta = {
 
         <!-- Meta Footer -->
         <footer class="article__footer">
-          <div class="article__tags">
-            {article.category && (
-              <a href={`/lettres?cat=${article.category}`} class="article__tag">
-                #{article.category}
-              </a>
-            )}
-          </div>
         </footer>
       </main>
 
