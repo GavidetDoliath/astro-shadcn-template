@@ -115,7 +115,20 @@ export default defineConfig({
     open: true, // サーバー起動時に自動的にブラウザを開くかどうかの設定
   }),
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      // Empêche Vite/Astro de charger les fichiers de test dans le bundle SSR,
+      // ce qui importerait vitest hors du runner et ferait échouer le build.
+      {
+        name: 'skip-test-files',
+        enforce: 'pre',
+        transform(_, id) {
+          if (/\.(test|spec)\.(ts|tsx|js|jsx|mjs)$/.test(id)) {
+            return { code: 'export {}', map: null };
+          }
+        },
+      },
+    ],
     build: {
       minify: process.env.NODE_ENV === 'production', // コードを圧縮するかどうか
       assetsInlineLimit: 0, // 4KB以下の時に自動的にインラインで埋め込まれてしまうのを防ぐ
