@@ -2,7 +2,8 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { getTemplate, TEMPLATE_GRID_STYLES } from '@/lib/editor-templates';
 import { BlockElement } from './BlockElement';
-import type { JournalPage, JournalBlock } from '@/types/journal';
+import type { JournalPage, JournalBlock, PageFormat } from '@/types/journal';
+import { PAGE_FORMATS } from '@/types/journal';
 
 interface DroppableZoneProps {
   zoneId: string;
@@ -78,11 +79,8 @@ interface PageCanvasProps {
   onUpdateBlock: (blockId: string, updates: Partial<JournalBlock>) => void;
   onDeleteBlock: (blockId: string) => void;
   scale?: number;
+  format?: PageFormat;
 }
-
-// A4: 210mm × 297mm at 96dpi → ~794px × ~1123px
-const A4_WIDTH = 794;
-const A4_HEIGHT = 1123;
 
 export function PageCanvas({
   page,
@@ -92,7 +90,9 @@ export function PageCanvas({
   onUpdateBlock,
   onDeleteBlock,
   scale = 1,
+  format = 'A4',
 }: PageCanvasProps) {
+  const { width, height } = PAGE_FORMATS[format];
   const template = getTemplate(page.templateId);
   const gridStyle = TEMPLATE_GRID_STYLES[page.templateId] ?? TEMPLATE_GRID_STYLES['une-colonne'];
 
@@ -111,8 +111,8 @@ export function PageCanvas({
     <div
       data-pdf-page={isActive ? page.id : undefined}
       style={{
-        width: A4_WIDTH,
-        height: A4_HEIGHT,
+        width,
+        height,
         transform: `scale(${scale})`,
         transformOrigin: 'top center',
         flexShrink: 0,

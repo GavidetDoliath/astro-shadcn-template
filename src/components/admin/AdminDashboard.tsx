@@ -112,7 +112,6 @@ export function AdminDashboard() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="px-6 py-4 text-left font-semibold">Titre</th>
-                  <th className="px-6 py-4 text-left font-semibold">Catégorie</th>
                   <th className="px-6 py-4 text-left font-semibold">Statut</th>
                   <th className="px-6 py-4 text-left font-semibold">Date</th>
                   <th className="px-6 py-4 text-center font-semibold">Actions</th>
@@ -123,14 +122,9 @@ export function AdminDashboard() {
                   <tr key={article.id} className="border-b border-border">
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-medium">{article.title}</div>
-                        <div className="text-sm text-gray-500">{article.slug}</div>
+                        <div className="font-medium font-sans">{article.title}</div>
+                        <div className="font-sans text-sm text-gray-500">{article.slug}</div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-block rounded-md bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground">
-                        {article.category}
-                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span

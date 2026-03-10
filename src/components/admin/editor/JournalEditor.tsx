@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -9,7 +10,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import type { Journal, JournalBlock, JournalPage, BlockType } from '@/types/journal';
+import type { Journal, JournalBlock, JournalPage, BlockType, PageFormat } from '@/types/journal';
 import { EDITOR_TEMPLATES } from '@/lib/editor-templates';
 import { BlockPalette } from './BlockPalette';
 import { PageCanvas } from './PageCanvas';
@@ -34,6 +35,58 @@ function createBlock(type: BlockType, zoneId: string, order: number, extra?: Par
 
 function createPage(pageNumber: number, templateId = 'deux-colonnes'): JournalPage {
   return { id: generateId(), pageNumber, templateId, blocks: [] };
+}
+
+const SIDEBAR_DEFAULT = 224;
+const SIDEBAR_MIN = 160;
+const SIDEBAR_MAX = 480;
+const COLLAPSE_THRESHOLD = 100;
+
+function useResizableSidebar(side: 'left' | 'right') {
+  const [width, setWidth] = useState(SIDEBAR_DEFAULT);
+  const [collapsed, setCollapsed] = useState(false);
+  const savedWidth = useRef(SIDEBAR_DEFAULT);
+
+  const onDragHandleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startW = savedWidth.current;
+
+      function onMove(ev: MouseEvent) {
+        const delta = side === 'left' ? ev.clientX - startX : startX - ev.clientX;
+        const next = Math.max(0, Math.min(SIDEBAR_MAX, startW + delta));
+        if (next < COLLAPSE_THRESHOLD) {
+          setCollapsed(true);
+        } else {
+          setCollapsed(false);
+          const clamped = Math.max(SIDEBAR_MIN, next);
+          setWidth(clamped);
+          savedWidth.current = clamped;
+        }
+      }
+
+      function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+      }
+
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'col-resize';
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    },
+    [side],
+  );
+
+  const expand = useCallback(() => {
+    setCollapsed(false);
+    setWidth(savedWidth.current);
+  }, []);
+
+  return { width, collapsed, onDragHandleMouseDown, expand };
 }
 
 interface JournalEditorProps {
@@ -207,10 +260,18 @@ export function JournalEditor({ journal: initialJournal, articles }: JournalEdit
   }
 
   const selectedBlock = currentPage?.blocks.find((b) => b.id === selectedBlockId) ?? null;
+  const left = useResizableSidebar('left');
+  const right = useResizableSidebar('right');
+
+  const format: PageFormat = journal.content.format ?? 'A4';
+
+  function handleFormatChange(newFormat: PageFormat) {
+    updateJournal((j) => ({ ...j, content: { ...j.content, format: newFormat } }));
+  }
 
   async function handleExportPdf() {
     const { exportToPdf } = await import('./PdfExport');
-    await exportToPdf(journal.title, journal.issueNumber);
+    await exportToPdf(journal.title, journal.issueNumber, format);
   }
 
   return (
@@ -225,51 +286,72 @@ export function JournalEditor({ journal: initialJournal, articles }: JournalEdit
           onAddPage={addPage}
           onTitleChange={(title) => updateJournal((j) => ({ ...j, title }))}
           onStatusChange={(status) => updateJournal((j) => ({ ...j, status }))}
+          onFormatChange={handleFormatChange}
           onSave={() => saveJournal(journal, true)}
           onExportPdf={handleExportPdf}
         />
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Sidebar */}
-          <aside className="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-border bg-card p-3">
-            <BlockPalette articles={articles} />
-
-            <div className="mt-4 border-t border-border pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Page actuelle</p>
+          {/* Left sidebar — collapsed strip */}
+          {left.collapsed ? (
+            <div className="flex w-7 shrink-0 flex-col items-center border-r border-border bg-card pt-2">
               <button
-                onClick={() => setShowTemplatePicker(true)}
-                className="w-full rounded border border-border px-3 py-2 text-left text-xs hover:bg-accent"
+                onClick={left.expand}
+                title="Afficher la palette"
+                className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
               >
-                Template: {EDITOR_TEMPLATES.find((t) => t.id === currentPage?.templateId)?.label ?? '—'}
+                <ChevronRight size={14} />
               </button>
-              {journal.content.pages.length > 1 && (
-                <button
-                  onClick={() => deletePage(currentPageIndex)}
-                  className="mt-1 w-full rounded border border-destructive/30 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/5"
-                >
-                  Supprimer cette page
-                </button>
-              )}
             </div>
+          ) : (
+            <>
+              <aside
+                style={{ width: left.width }}
+                className="flex shrink-0 flex-col overflow-x-hidden overflow-y-auto border-r border-border bg-card p-3"
+              >
+                <BlockPalette articles={articles} />
 
-            {/* Page thumbnails */}
-            <div className="mt-4 border-t border-border pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pages</p>
-              <div className="flex flex-col gap-1">
-                {journal.content.pages.map((page, i) => (
+                <div className="mt-4 border-t border-border pt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Page actuelle</p>
                   <button
-                    key={page.id}
-                    onClick={() => setCurrentPageIndex(i)}
-                    className={`rounded px-2 py-1.5 text-left text-xs transition-colors ${
-                      i === currentPageIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
-                    }`}
+                    onClick={() => setShowTemplatePicker(true)}
+                    className="w-full rounded border border-border px-3 py-2 text-left text-xs hover:bg-accent"
                   >
-                    Page {page.pageNumber}
+                    Template: {EDITOR_TEMPLATES.find((t) => t.id === currentPage?.templateId)?.label ?? '—'}
                   </button>
-                ))}
-              </div>
-            </div>
-          </aside>
+                  {journal.content.pages.length > 1 && (
+                    <button
+                      onClick={() => deletePage(currentPageIndex)}
+                      className="mt-1 w-full rounded border border-destructive/30 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/5"
+                    >
+                      Supprimer cette page
+                    </button>
+                  )}
+                </div>
+
+                <div className="mt-4 border-t border-border pt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pages</p>
+                  <div className="flex flex-col gap-1">
+                    {journal.content.pages.map((page, i) => (
+                      <button
+                        key={page.id}
+                        onClick={() => setCurrentPageIndex(i)}
+                        className={`rounded px-2 py-1.5 text-left text-xs transition-colors ${
+                          i === currentPageIndex ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
+                        }`}
+                      >
+                        Page {page.pageNumber}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </aside>
+              <div
+                onMouseDown={left.onDragHandleMouseDown}
+                className="w-1 shrink-0 cursor-col-resize bg-transparent transition-colors hover:bg-primary/20 active:bg-primary/40"
+              />
+            </>
+          )}
 
           {/* Canvas */}
           {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
@@ -287,20 +369,42 @@ export function JournalEditor({ journal: initialJournal, articles }: JournalEdit
                 onUpdateBlock={updateBlock}
                 onDeleteBlock={deleteBlock}
                 scale={0.75}
+                format={format}
               />
             )}
           </main>
 
-          {/* Inspector */}
-          <aside className="flex w-56 shrink-0 flex-col overflow-y-auto border-l border-border bg-card">
-            <div className="border-b border-border px-4 py-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Inspecteur</p>
+          {/* Right sidebar — collapsed strip */}
+          {right.collapsed ? (
+            <div className="flex w-7 shrink-0 flex-col items-center border-l border-border bg-card pt-2">
+              <button
+                onClick={right.expand}
+                title="Afficher l'inspecteur"
+                className="rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+              >
+                <ChevronLeft size={14} />
+              </button>
             </div>
-            <EditorInspector
-              block={selectedBlock}
-              onUpdate={(updates) => selectedBlockId && updateBlock(selectedBlockId, updates)}
-            />
-          </aside>
+          ) : (
+            <>
+              <div
+                onMouseDown={right.onDragHandleMouseDown}
+                className="w-1 shrink-0 cursor-col-resize bg-transparent transition-colors hover:bg-primary/20 active:bg-primary/40"
+              />
+              <aside
+                style={{ width: right.width }}
+                className="flex shrink-0 flex-col overflow-x-hidden overflow-y-auto border-l border-border bg-card"
+              >
+                <div className="border-b border-border px-4 py-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Inspecteur</p>
+                </div>
+                <EditorInspector
+                  block={selectedBlock}
+                  onUpdate={(updates) => selectedBlockId && updateBlock(selectedBlockId, updates)}
+                />
+              </aside>
+            </>
+          )}
         </div>
       </div>
 

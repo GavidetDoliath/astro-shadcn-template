@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { RichTextEditor } from './RichTextEditor';
 
 export interface ArticleFormData {
@@ -6,7 +7,6 @@ export interface ArticleFormData {
   excerpt: string;
   content: string;
   date: string;
-  category: 'lettre' | 'pamphlet' | 'fosse';
   image: string;
   slug: string;
   author: string;
@@ -34,7 +34,6 @@ export function ArticleForm({
     excerpt: initialData.excerpt || '',
     content: initialData.content || '',
     date: initialData.date || new Date().toISOString().split('T')[0],
-    category: initialData.category || 'lettre',
     image: initialData.image || '',
     slug: initialData.slug || '',
     author: initialData.author || '',
@@ -47,6 +46,8 @@ export function ArticleForm({
   const [error, setError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadPhase, setUploadPhase] = useState<'sending' | 'processing'>('sending');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -79,28 +80,57 @@ export function ArticleForm({
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setIsUploading(true);
-    setError('');
+    flushSync(() => {
+      setIsUploading(true);
+      setUploadProgress(0);
+      setUploadPhase('sending');
+      setError('');
+    });
 
-    try {
-      const body = new FormData();
-      body.append('file', file);
+    const body = new FormData();
+    body.append('file', file);
 
-      const res = await fetch('/api/admin/upload', { method: 'POST', body });
-      const json = await res.json();
+    const xhr = new XMLHttpRequest();
 
-      if (!res.ok) throw new Error(json.error || "Erreur lors de l'upload");
+    // Phase 1 : envoi navigateur → serveur (0–100%)
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        setUploadProgress(Math.round((event.loaded / event.total) * 100));
+      }
+    };
 
-      setFormData((prev) => ({ ...prev, image: json.url }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
-    } finally {
+    // Phase 2 : traitement serveur (Supabase, resize…) — durée inconnue
+    xhr.upload.onloadend = () => {
+      setUploadPhase('processing');
+    };
+
+    xhr.onload = () => {
+      try {
+        const json = JSON.parse(xhr.responseText);
+        if (xhr.status >= 400) throw new Error(json.error || "Erreur lors de l'upload");
+        setFormData((prev) => ({ ...prev, image: json.url }));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
+      } finally {
+        setIsUploading(false);
+        setUploadProgress(0);
+        setUploadPhase('sending');
+      }
+    };
+
+    xhr.onerror = () => {
+      setError("Erreur réseau lors de l'upload");
       setIsUploading(false);
-    }
+      setUploadProgress(0);
+      setUploadPhase('sending');
+    };
+
+    xhr.open('POST', '/api/admin/upload');
+    xhr.send(body);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -202,42 +232,23 @@ export function ArticleForm({
         </div>
       </div>
 
-      {/* Row 3: Category and Access Level */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium">
-            Catégorie *
-          </label>
-          <select
-            id="category"
-            name="category"
-            value={formData.category}
-            onChange={handleInputChange}
-            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
-            required
-          >
-            <option value="lettre">Lettre</option>
-            <option value="pamphlet">Pamphlet</option>
-            <option value="fosse">Fosse</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="accessLevel" className="block text-sm font-medium">
-            Accès *
-          </label>
-          <select
-            id="accessLevel"
-            name="accessLevel"
-            value={formData.accessLevel}
-            onChange={handleInputChange}
-            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
-            required
-          >
-            <option value="public">Public</option>
-            <option value="subscriber_free">Abonné gratuit</option>
-            <option value="subscriber_paid">Abonné payant</option>
-          </select>
-        </div>
+      {/* Row 3: Access Level */}
+      <div>
+        <label htmlFor="accessLevel" className="block text-sm font-medium">
+          Accès *
+        </label>
+        <select
+          id="accessLevel"
+          name="accessLevel"
+          value={formData.accessLevel}
+          onChange={handleInputChange}
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2"
+          required
+        >
+          <option value="public">Public</option>
+          <option value="subscriber_free">Abonné gratuit</option>
+          <option value="subscriber_paid">Abonné payant</option>
+        </select>
       </div>
 
       {/* Excerpt */}
@@ -251,7 +262,7 @@ export function ArticleForm({
           value={formData.excerpt}
           onChange={handleInputChange}
           rows={3}
-          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
+          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 font-sans dark:border-gray-700 dark:bg-gray-900"
           placeholder="Résumé de l'article"
         />
       </div>
@@ -260,7 +271,29 @@ export function ArticleForm({
       <div>
         <label className="block text-sm font-medium">Image</label>
         <div className="mt-1 flex flex-col gap-2">
-          {formData.image && (
+          {isUploading ? (
+            <div className="flex h-24 w-40 flex-col items-center justify-center gap-2 rounded-md border border-border bg-muted px-3">
+              {uploadPhase === 'sending' ? (
+                <>
+                  <span className="text-xs font-medium tabular-nums text-muted-foreground">{uploadProgress}%</span>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-150"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4 animate-spin text-muted-foreground" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                  </svg>
+                  <span className="text-xs text-muted-foreground">Traitement…</span>
+                </>
+              )}
+            </div>
+          ) : formData.image ? (
             <div className="relative w-40">
               <img src={formData.image} alt="Aperçu" className="h-24 w-40 rounded-md object-cover border border-border" />
               <button
@@ -271,7 +304,7 @@ export function ArticleForm({
                 ✕
               </button>
             </div>
-          )}
+          ) : null}
           <div className="flex gap-2">
             <input
               ref={fileInputRef}
@@ -280,15 +313,21 @@ export function ArticleForm({
               onChange={handleImageUpload}
               className="hidden"
             />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="rounded-md border border-border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
-            >
-              {isUploading ? 'Upload...' : 'Choisir une image'}
-            </button>
-            {formData.image && (
+            {!formData.image && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isUploading
+                  ? uploadPhase === 'sending'
+                    ? `Envoi… ${uploadProgress}%`
+                    : 'Traitement…'
+                  : 'Choisir une image'}
+              </button>
+            )}
+            {formData.image && !isUploading && (
               <input
                 type="text"
                 value={formData.image}

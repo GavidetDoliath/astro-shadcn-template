@@ -2,7 +2,7 @@
 export const prerender = false;
 import { getApiUser as getUser } from '@/lib/auth';
 import { getJournals } from '@/lib/journals';
-import '@/styles/global.css';
+import AdminLayout from '@/layouts/AdminLayout.astro';
 
 const user = await getUser(Astro.request);
 if (!user || user.role !== 'admin') return Astro.redirect('/admin/login');
@@ -10,145 +10,125 @@ if (!user || user.role !== 'admin') return Astro.redirect('/admin/login');
 const journals = await getJournals().catch(() => []);
 ---
 
-<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Journaux · Admin</title>
-    <meta name="robots" content="noindex, nofollow" />
-  </head>
-  <body class="bg-background text-foreground">
-    <nav class="border-b border-border bg-card">
-      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <h1 class="text-2xl font-bold">La Déraison Admin</h1>
-        <div class="flex gap-4">
-          <a href="/admin" class="text-sm hover:text-muted-foreground transition-colors">Articles</a>
-          <a href="/admin/journals" class="text-sm font-semibold">Journaux</a>
-          <a href="/" class="text-sm hover:text-muted-foreground transition-colors">← Site</a>
-        </div>
-      </div>
-    </nav>
-
-    <div class="mx-auto max-w-5xl px-6 py-8">
-      <div class="mb-6 flex items-center justify-between">
-        <h2 class="text-xl font-semibold">Numéros de journal</h2>
-        <button
-          id="btn-new"
-          class="rounded bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
-          + Nouveau numéro
-        </button>
-      </div>
-
-      <!-- New journal form (hidden by default) -->
-      <div id="form-new" class="mb-6 hidden rounded-xl border border-border bg-card p-6">
-        <h3 class="mb-4 font-semibold">Créer un numéro</h3>
-        <form id="create-form" class="flex flex-wrap gap-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-xs text-muted-foreground">Titre</label>
-            <input name="title" required class="rounded border border-border bg-background px-3 py-2 text-sm" placeholder="Ex: La Déraison n°12" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs text-muted-foreground">Numéro</label>
-            <input name="issueNumber" type="number" class="w-24 rounded border border-border bg-background px-3 py-2 text-sm" placeholder="12" />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-xs text-muted-foreground">Date de parution</label>
-            <input name="date" type="date" required class="rounded border border-border bg-background px-3 py-2 text-sm" />
-          </div>
-          <div class="flex items-end gap-2">
-            <button type="submit" class="rounded bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-              Créer et éditer
-            </button>
-            <button type="button" id="btn-cancel" class="rounded border border-border px-4 py-2 text-sm hover:bg-accent">
-              Annuler
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- Journals list -->
-      {journals.length === 0 ? (
-        <div class="rounded-xl border border-dashed border-border py-16 text-center text-muted-foreground">
-          Aucun numéro pour l'instant. Créez le premier !
-        </div>
-      ) : (
-        <div class="flex flex-col gap-3">
-          {journals.map((journal) => (
-            <div class="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4">
-              <div>
-                <div class="font-semibold">{journal.title}</div>
-                <div class="mt-0.5 flex gap-3 text-xs text-muted-foreground">
-                  <span>{new Date(journal.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                  <span class={`rounded px-1.5 py-0.5 font-medium ${
-                    journal.status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                    journal.status === 'review' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                    'bg-muted text-muted-foreground'
-                  }`}>
-                    {journal.status === 'draft' ? 'Brouillon' : journal.status === 'review' ? 'En révision' : 'Approuvé'}
-                  </span>
-                  <span>{journal.content.pages.length} page{journal.content.pages.length > 1 ? 's' : ''}</span>
-                </div>
-              </div>
-              <div class="flex gap-2">
-                <a
-                  href={`/admin/journal?id=${journal.id}`}
-                  class="rounded border border-border px-3 py-1.5 text-sm hover:bg-accent"
-                >
-                  Éditer
-                </a>
-                <button
-                  data-delete-id={journal.id}
-                  class="rounded border border-destructive/30 px-3 py-1.5 text-sm text-destructive hover:bg-destructive/5"
-                >
-                  Supprimer
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+<AdminLayout title="Journaux" activeNav="journals">
+  <div class="mx-auto max-w-5xl px-6 py-8">
+    <div class="mb-6 flex items-center justify-between">
+      <h2 class="text-xl font-semibold">Numéros de journal</h2>
+      <button
+        id="btn-new"
+        class="rounded bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+      >
+        + Nouveau numéro
+      </button>
     </div>
 
-    <script>
-      const btnNew = document.getElementById('btn-new');
-      const formNew = document.getElementById('form-new');
-      const btnCancel = document.getElementById('btn-cancel');
-      const createForm = document.getElementById('create-form') as HTMLFormElement | null;
+    <!-- New journal form (hidden by default) -->
+    <div id="form-new" class="mb-6 hidden rounded-xl border border-border bg-card p-6">
+      <h3 class="mb-4 font-semibold">Créer un numéro</h3>
+      <form id="create-form" class="flex flex-wrap gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-muted-foreground">Titre</label>
+          <input name="title" required class="rounded border border-border bg-background px-3 py-2 text-sm" placeholder="Ex: La Déraison n°12" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-muted-foreground">Numéro</label>
+          <input name="issueNumber" type="number" class="w-24 rounded border border-border bg-background px-3 py-2 text-sm" placeholder="12" />
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs text-muted-foreground">Date de parution</label>
+          <input name="date" type="date" required class="rounded border border-border bg-background px-3 py-2 text-sm" />
+        </div>
+        <div class="flex items-end gap-2">
+          <button type="submit" class="rounded bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+            Créer et éditer
+          </button>
+          <button type="button" id="btn-cancel" class="rounded border border-border px-4 py-2 text-sm hover:bg-accent">
+            Annuler
+          </button>
+        </div>
+      </form>
+    </div>
 
-      btnNew?.addEventListener('click', () => formNew?.classList.remove('hidden'));
-      btnCancel?.addEventListener('click', () => formNew?.classList.add('hidden'));
+    <!-- Journals list -->
+    {journals.length === 0 ? (
+      <div class="rounded-xl border border-dashed border-border py-16 text-center text-muted-foreground">
+        Aucun numéro pour l'instant. Créez le premier !
+      </div>
+    ) : (
+      <div class="flex flex-col gap-3">
+        {journals.map((journal) => (
+          <div class="flex items-center justify-between rounded-xl border border-border bg-card px-5 py-4">
+            <div>
+              <div class="font-semibold">{journal.title}</div>
+              <div class="mt-0.5 flex gap-3 text-xs text-muted-foreground">
+                <span>{new Date(journal.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                <span class={`rounded px-1.5 py-0.5 font-medium ${
+                  journal.status === 'approved' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                  journal.status === 'review' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                  'bg-muted text-muted-foreground'
+                }`}>
+                  {journal.status === 'draft' ? 'Brouillon' : journal.status === 'review' ? 'En révision' : 'Approuvé'}
+                </span>
+                <span>{journal.content.pages.length} page{journal.content.pages.length > 1 ? 's' : ''}</span>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <a
+                href={`/admin/journal?id=${journal.id}`}
+                class="rounded border border-border px-3 py-1.5 text-sm hover:bg-accent"
+              >
+                Éditer
+              </a>
+              <button
+                data-delete-id={journal.id}
+                class="rounded border border-destructive/30 px-3 py-1.5 text-sm text-destructive hover:bg-destructive/5"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
 
-      createForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const data = Object.fromEntries(new FormData(createForm));
-        const res = await fetch('/api/admin/journals', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: data.title,
-            issueNumber: data.issueNumber ? Number(data.issueNumber) : undefined,
-            date: data.date,
-          }),
-        });
-        if (res.ok) {
-          const journal = await res.json();
-          window.location.href = `/admin/journal?id=${journal.id}`;
-        } else {
-          alert('Erreur lors de la création du journal');
-        }
+  <script>
+    const btnNew = document.getElementById('btn-new');
+    const formNew = document.getElementById('form-new');
+    const btnCancel = document.getElementById('btn-cancel');
+    const createForm = document.getElementById('create-form') as HTMLFormElement | null;
+
+    btnNew?.addEventListener('click', () => formNew?.classList.remove('hidden'));
+    btnCancel?.addEventListener('click', () => formNew?.classList.add('hidden'));
+
+    createForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(createForm));
+      const res = await fetch('/api/admin/journals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: data.title,
+          issueNumber: data.issueNumber ? Number(data.issueNumber) : undefined,
+          date: data.date,
+        }),
       });
+      if (res.ok) {
+        const journal = await res.json();
+        window.location.href = `/admin/journal?id=${journal.id}`;
+      } else {
+        alert('Erreur lors de la création du journal');
+      }
+    });
 
-      document.querySelectorAll('[data-delete-id]').forEach((btn) => {
-        btn.addEventListener('click', async () => {
-          if (!confirm('Supprimer ce numéro ?')) return;
-          const id = (btn as HTMLElement).dataset.deleteId;
-          const res = await fetch(`/api/admin/journals/${id}`, { method: 'DELETE' });
-          if (res.ok) location.reload();
-          else alert('Erreur lors de la suppression');
-        });
+    document.querySelectorAll('[data-delete-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Supprimer ce numéro ?')) return;
+        const id = (btn as HTMLElement).dataset.deleteId;
+        const res = await fetch(`/api/admin/journals/${id}`, { method: 'DELETE' });
+        if (res.ok) location.reload();
+        else alert('Erreur lors de la suppression');
       });
-    </script>
-  </body>
-</html>
+    });
+  </script>
+</AdminLayout>

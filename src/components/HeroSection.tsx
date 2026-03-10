@@ -102,6 +102,9 @@ export default function HeroSection() {
           opacity: 1;
           transform: scaleX(1);
         }
+        .dark .hero__rule {
+          background: var(--parchemin);
+        }
 
         .hero__title {
           font-family: var(--font-serif);
@@ -324,7 +327,7 @@ export default function HeroSection() {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: linear-gradient(to top, rgba(255,255,255,0.5), transparent);
+          background: linear-gradient(to top, var(--noir), transparent);
           opacity: 0;
           transition: opacity 0.8s ease 1.8s;
         }

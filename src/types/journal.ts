@@ -1,3 +1,10 @@
+export type PageFormat = 'A4' | 'A3';
+
+export const PAGE_FORMATS: Record<PageFormat, { width: number; height: number; mmWidth: number; mmHeight: number }> = {
+  A4: { width: 794, height: 1123, mmWidth: 210, mmHeight: 297 },
+  A3: { width: 1123, height: 1587, mmWidth: 297, mmHeight: 420 },
+};
+
 export interface Journal {
   id: string;
   title: string;
@@ -11,6 +18,7 @@ export interface Journal {
 }
 
 export interface JournalContent {
+  format?: PageFormat;
   pages: JournalPage[];
 }
 

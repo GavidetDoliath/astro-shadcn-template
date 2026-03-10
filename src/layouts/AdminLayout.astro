@@ -1,0 +1,124 @@
+---
+import '@/styles/global.css';
+import ThemeToggle from '@/components/ThemeToggle';
+
+interface Props {
+  title: string;
+  activeNav?: 'articles' | 'journals';
+}
+
+const { title, activeNav } = Astro.props;
+---
+
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} · Admin</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var isDark = stored === 'dark' || (stored !== 'light' && prefersDark);
+        if (isDark) document.documentElement.classList.add('dark');
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+          if (!localStorage.getItem('theme')) {
+            if (e.matches) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+          }
+        });
+      })();
+    </script>
+  </head>
+  <body class="bg-background text-foreground">
+    <nav class="admin-nav">
+      <div class="admin-nav__inner">
+        <a href="/admin" class="admin-nav__logo">La <span>Déraison</span></a>
+        <div class="admin-nav__links">
+          <a href="/admin" class={activeNav === 'articles' ? 'admin-nav__active' : ''}>Articles</a>
+          <a href="/admin/journals" class={activeNav === 'journals' ? 'admin-nav__active' : ''}>Journaux</a>
+          <a href="/">← Site</a>
+          <ThemeToggle client:load />
+          <form method="POST" action="/api/admin/auth/logout" style="display:inline">
+            <button type="submit" class="admin-nav__logout">Déconnexion</button>
+          </form>
+        </div>
+      </div>
+    </nav>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  body { font-family: var(--font-mono); }
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif); }
+</style>
+
+<style>
+  .admin-nav {
+    border-bottom: 1px solid var(--gris-presse);
+    background: var(--noir);
+  }
+
+  .admin-nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 72rem;
+    margin: 0 auto;
+    height: 4rem;
+    padding: 0 1.5rem;
+  }
+
+  .admin-nav__logo {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--parchemin);
+    text-decoration: none;
+  }
+
+  .admin-nav__logo span {
+    color: var(--sang);
+  }
+
+  .admin-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  .admin-nav__links a,
+  .admin-nav__logout {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--parchemin);
+    text-decoration: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    transition: border-color 0.2s;
+  }
+
+  .admin-nav__links a:hover,
+  .admin-nav__logout:hover {
+    border-bottom-color: var(--sang);
+  }
+
+  .admin-nav__active {
+    border-bottom-color: var(--sang) !important;
+  }
+
+  .admin-nav__logout {
+    color: var(--sang);
+  }
+</style>

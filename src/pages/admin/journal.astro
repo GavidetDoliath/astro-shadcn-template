@@ -26,7 +26,25 @@ const articleList = articles.map((a) => ({ id: a.id, title: a.title, excerpt: a.
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{journal.title} · Éditeur</title>
     <meta name="robots" content="noindex, nofollow" />
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var isDark = stored === 'dark' || (stored !== 'light' && prefersDark);
+        if (isDark) document.documentElement.classList.add('dark');
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+          if (!localStorage.getItem('theme')) {
+            if (e.matches) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+          }
+        });
+      })();
+    </script>
   </head>
+  <style is:global>
+    body { font-family: var(--font-mono); }
+    h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif); }
+  </style>
   <body class="overflow-hidden bg-background text-foreground">
     <JournalEditor client:load journal={journal} articles={articleList} />
   </body>

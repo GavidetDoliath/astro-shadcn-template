@@ -1,4 +1,6 @@
-export async function exportToPdf(journalTitle: string, issueNumber?: number): Promise<void> {
+import { PAGE_FORMATS, type PageFormat } from '@/types/journal';
+
+export async function exportToPdf(journalTitle: string, issueNumber?: number, format: PageFormat = 'A4'): Promise<void> {
   const { default: html2canvas } = await import('html2canvas');
   const { jsPDF } = await import('jspdf');
 
@@ -8,7 +10,8 @@ export async function exportToPdf(journalTitle: string, issueNumber?: number): P
     return;
   }
 
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const { mmWidth, mmHeight } = PAGE_FORMATS[format];
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: format.toLowerCase() as 'a4' | 'a3' });
 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i];
@@ -21,7 +24,7 @@ export async function exportToPdf(journalTitle: string, issueNumber?: number): P
 
     const imgData = canvas.toDataURL('image/png');
     if (i > 0) pdf.addPage();
-    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+    pdf.addImage(imgData, 'PNG', 0, 0, mmWidth, mmHeight);
   }
 
   const filename = issueNumber ? `BAT-n${issueNumber}.pdf` : `${journalTitle.replace(/\s+/g, '-').toLowerCase()}.pdf`;

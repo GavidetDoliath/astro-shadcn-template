@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -25,8 +25,9 @@ import {
   Quote,
   Highlighter,
   Minus,
-  PanelLeft,
-  PanelTop,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
 } from 'lucide-react';
 
 const lowlight = createLowlight(common);
@@ -38,6 +39,8 @@ interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ value, onChange, placeholder = 'Écrivez votre article...' }: RichTextEditorProps) {
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -69,10 +72,31 @@ export function RichTextEditor({ value, onChange, placeholder = 'Écrivez votre 
     editorProps: {
       attributes: {
         class:
-          'prose prose-sm max-w-none min-h-96 rounded-md border border-input bg-background p-4 focus:outline-none focus:ring-2 focus:ring-ring',
+          'prose prose-sm max-w-none min-h-96 rounded-md border border-input bg-background p-4 focus:outline-none focus:ring-2 focus:ring-ring font-sans',
       },
     },
   });
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editor) return;
+    e.target.value = '';
+
+    setIsUploadingImage(true);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+
+      const res = await fetch('/api/admin/upload', { method: 'POST', body });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Erreur upload');
+      editor.chain().focus().setImage({ src: json.url }).run();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Erreur lors de l'upload");
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   if (!editor) return null;
 
@@ -180,35 +204,37 @@ export function RichTextEditor({ value, onChange, placeholder = 'Écrivez votre 
             icon={LinkIcon}
             title="Ajouter un lien"
           />
-          <ToolbarButton
-            onClick={() => {
-              const url = prompt('URL de l\'image:');
-              if (url) {
-                editor.chain().focus().setImage({ src: url }).run();
-              }
-            }}
-            icon={ImageIcon}
+          <label
             title="Ajouter une image"
-          />
+            className={`cursor-pointer rounded-md p-2 transition-colors hover:bg-muted ${isUploadingImage ? 'opacity-50 pointer-events-none' : ''}`}
+          >
+            <ImageIcon size={18} />
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={handleImageFileChange}
+              className="hidden"
+            />
+          </label>
         </div>
 
         <div className="flex gap-1 border-r border-border pr-2">
           <ToolbarButton
             onClick={() => editor.chain().focus().setTextAlign('left').run()}
             isActive={editor.isActive({ textAlign: 'left' })}
-            icon={PanelLeft}
+            icon={AlignLeft}
             title="Aligner à gauche"
           />
           <ToolbarButton
             onClick={() => editor.chain().focus().setTextAlign('center').run()}
             isActive={editor.isActive({ textAlign: 'center' })}
-            icon={PanelTop}
+            icon={AlignCenter}
             title="Centrer"
           />
           <ToolbarButton
             onClick={() => editor.chain().focus().setTextAlign('right').run()}
             isActive={editor.isActive({ textAlign: 'right' })}
-            icon={PanelLeft}
+            icon={AlignRight}
             title="Aligner à droite"
           />
         </div>

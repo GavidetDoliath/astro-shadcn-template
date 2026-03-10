@@ -2,6 +2,7 @@
 export const prerender = false;
 import { getApiUser } from '@/lib/auth';
 import '@/styles/global.css';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const user = await getApiUser(Astro.request);
 if (user) return Astro.redirect('/admin');
@@ -14,12 +15,29 @@ if (user) return Astro.redirect('/admin');
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin · Connexion</title>
     <meta name="robots" content="noindex, nofollow" />
+    <script is:inline>
+      (function () {
+        var stored = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var isDark = stored === 'dark' || (stored !== 'light' && prefersDark);
+        if (isDark) document.documentElement.classList.add('dark');
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+          if (!localStorage.getItem('theme')) {
+            if (e.matches) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+          }
+        });
+      })();
+    </script>
   </head>
   <body class="bg-background text-foreground">
+    <div class="fixed right-4 top-4 z-50">
+      <ThemeToggle client:load className="login-theme-toggle" />
+    </div>
     <div class="flex min-h-screen items-center justify-center px-4">
       <div class="w-full max-w-sm">
         <div class="mb-8 text-center">
-          <h1 class="text-2xl font-bold">La Déraison Admin</h1>
+          <h1 class="admin-login__title">La <span>Déraison</span></h1>
           <p class="mt-1 text-sm text-muted-foreground">Connectez-vous pour accéder au tableau de bord</p>
         </div>
 
@@ -98,3 +116,30 @@ if (user) return Astro.redirect('/admin');
     </script>
   </body>
 </html>
+
+<style is:global>
+  body { font-family: var(--font-mono); }
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif); }
+</style>
+
+<style>
+  .admin-login__title {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--foreground);
+    margin: 0;
+  }
+
+  .admin-login__title span { color: var(--sang); }
+
+  .login-theme-toggle {
+    color: var(--muted-foreground) !important;
+  }
+
+  .login-theme-toggle:hover {
+    color: var(--foreground) !important;
+  }
+</style>

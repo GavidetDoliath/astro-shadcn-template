@@ -1,4 +1,5 @@
-import type { Journal } from '@/types/journal';
+import type { Journal, PageFormat } from '@/types/journal';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface EditorHeaderProps {
   journal: Journal;
@@ -9,6 +10,7 @@ interface EditorHeaderProps {
   onAddPage: () => void;
   onTitleChange: (title: string) => void;
   onStatusChange: (status: Journal['status']) => void;
+  onFormatChange: (format: PageFormat) => void;
   onSave: () => void;
   onExportPdf: () => void;
 }
@@ -22,6 +24,7 @@ export function EditorHeader({
   onAddPage,
   onTitleChange,
   onStatusChange,
+  onFormatChange,
   onSave,
   onExportPdf,
 }: EditorHeaderProps) {
@@ -47,6 +50,14 @@ export function EditorHeader({
           <option value="draft">Brouillon</option>
           <option value="review">En révision</option>
           <option value="approved">Approuvé</option>
+        </select>
+        <select
+          value={journal.content.format ?? 'A4'}
+          onChange={(e) => onFormatChange(e.target.value as PageFormat)}
+          className="rounded border border-border bg-background px-2 py-1 text-xs"
+        >
+          <option value="A4">A4</option>
+          <option value="A3">A3</option>
         </select>
       </div>
 
@@ -92,6 +103,7 @@ export function EditorHeader({
         >
           Bon à tirer ↓
         </button>
+        <ThemeToggle className="!text-muted-foreground hover:!text-foreground" />
       </div>
     </div>
   );
