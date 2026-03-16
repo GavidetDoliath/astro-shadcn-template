@@ -1,24 +1,38 @@
 ---
 import { Image } from 'astro:assets';
-import { getArticles } from '@/lib/articles';
+import { getAllTags, getArticlesByTag } from '@/lib/articles';
 import Layout from '@/layouts/Layout.astro';
 
-// Fetch all articles
-const articles = await getArticles();
+export async function getStaticPaths() {
+  const tags = await getAllTags();
+  return tags.map(tag => ({
+    params: { tag: tag.name },
+  }));
+}
+
+const { tag } = Astro.params;
+const articles = await getArticlesByTag(tag || '');
 
 const meta = {
-  title: 'Les Lettres · La Déraison',
-  description: 'Tous les articles de la Lettre de la Déraison - une guérilla littéraire',
+  title: `#${tag} · La Déraison`,
+  description: `Articles avec le tag ${tag}`,
 };
 ---
 
 <Layout {...meta}>
   <section class="articles-listing">
     <div class="articles-listing__inner">
+      <!-- Breadcrumb -->
+      <nav class="articles-listing__breadcrumb">
+        <a href="/tags">Tags</a>
+        <span>/</span>
+        <span>#{tag}</span>
+      </nav>
+
       <!-- Header -->
       <header class="articles-listing__header">
-        <h1 class="articles-listing__title">Les Lettres</h1>
-        <p class="articles-listing__subtitle">Tous nos articles</p>
+        <h1 class="articles-listing__title">#{tag}</h1>
+        <p class="articles-listing__subtitle">{articles.length} article{articles.length !== 1 ? 's' : ''}</p>
       </header>
 
       <!-- Rule -->
@@ -37,15 +51,13 @@ const meta = {
 
             return (
               <article class="articles-listing__item">
-                <div class="articles-listing__meta-top">
-                  <a href={`/categories/${article.data.category}`} class="articles-listing__item-category">
-                    {article.data.category}
-                  </a>
-                </div>
                 <a href={`/lettres/${article.slug}`} class="articles-listing__link">
                   <div class="articles-listing__item-body">
                     <div class="articles-listing__item-text">
                       <div class="articles-listing__item-header">
+                        <a href={`/categories/${article.data.category}`} class="articles-listing__item-category">
+                          {article.data.category}
+                        </a>
                         <h2 class="articles-listing__item-title">{article.data.title}</h2>
                       </div>
 
@@ -60,10 +72,10 @@ const meta = {
 
                       {article.data.tags && article.data.tags.length > 0 && (
                         <div class="articles-listing__item-tags">
-                          {article.data.tags.map(tag => (
-                            <span class="articles-listing__item-tag">
-                              #{tag}
-                            </span>
+                          {article.data.tags.map(t => (
+                            <a href={`/tags/${t}`} class="articles-listing__item-tag">
+                              #{t}
+                            </a>
                           ))}
                         </div>
                       )}
@@ -82,7 +94,7 @@ const meta = {
         </div>
       ) : (
         <div class="articles-listing__empty">
-          <p>Aucun article trouvé dans cette catégorie.</p>
+          <p>Aucun article trouvé avec ce tag.</p>
         </div>
       )}
     </div>
@@ -113,6 +125,31 @@ const meta = {
     z-index: 1;
     max-width: 900px;
     margin: 0 auto;
+  }
+
+  .articles-listing__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+
+    a {
+      color: var(--beige-pali);
+      text-decoration: none;
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--parchemin);
+      }
+    }
+
+    span {
+      color: var(--rouille);
+    }
   }
 
   .articles-listing__header {
@@ -152,20 +189,11 @@ const meta = {
   .articles-listing__item {
     border-bottom: 1px solid rgb(139 37 0 / 0.2);
     padding-bottom: clamp(1.5rem, 4vh, 2.5rem);
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
 
     &:last-child {
       border-bottom: none;
       padding-bottom: 0;
     }
-  }
-
-  .articles-listing__meta-top {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
   }
 
   .articles-listing__link {

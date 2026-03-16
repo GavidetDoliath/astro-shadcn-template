@@ -1,0 +1,45 @@
+---
+export const prerender = false;
+
+import AdminLayout from '@/layouts/AdminLayout.astro';
+import NewspaperList from '@/components/admin/newspaper/NewspaperList';
+
+const user = Astro.locals.user;
+if (!user || user.role !== 'admin') {
+  return Astro.redirect('/admin/login');
+}
+---
+
+<AdminLayout title="Éditions de journal" activeNav="newspapers">
+  <main class="admin-main">
+    <header class="admin-header">
+      <h1>Éditions de journal</h1>
+      <p>Composez vos éditions avec le template Chicago Sentinel</p>
+    </header>
+    <NewspaperList client:load />
+  </main>
+</AdminLayout>
+
+<style>
+  .admin-main {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .admin-header {
+    margin-bottom: 2rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.75rem;
+    margin: 0 0 0.5rem;
+    font-family: var(--font-serif);
+  }
+
+  .admin-header p {
+    margin: 0;
+    color: var(--gris-presse);
+    font-size: 0.9rem;
+  }
+</style>

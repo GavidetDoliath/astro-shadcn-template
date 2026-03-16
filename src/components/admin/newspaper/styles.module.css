@@ -1,0 +1,385 @@
+/* Article Picker */
+.articlePicker {
+  position: relative;
+  width: 100%;
+}
+
+.pickerInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pickerInput {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+
+.clearButton {
+  position: absolute;
+  right: 0.5rem;
+  font-size: 1rem;
+}
+
+.pickerDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pickerItem {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.pickerItem:hover {
+  background: #f5f5f5;
+}
+
+.pickerItem.selected {
+  background: #e3f2fd;
+}
+
+.itemTitle {
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.itemExcerpt {
+  font-size: 0.8rem;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pickerEmpty {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-top: none;
+  text-align: center;
+  color: #999;
+  font-size: 0.85rem;
+  z-index: 100;
+}
+
+/* Newspaper Canvas */
+.newspaperCanvasContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  padding: 2rem;
+  background: #f5f5f5;
+}
+
+.canvasInfo {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Newspaper List */
+.newspaperList {
+  padding: 0;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem;
+  background: var(--gris-clair);
+  border-radius: 0.25rem;
+  color: var(--gris-presse);
+}
+
+.editionsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.editionsTable thead {
+  border-bottom: 2px solid var(--noir);
+}
+
+.editionsTable th {
+  text-align: left;
+  padding: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  background: var(--noir);
+  color: var(--parchemin);
+}
+
+.editionsTable td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--gris-leger);
+}
+
+.titleCell {
+  font-weight: 500;
+}
+
+.dateCell {
+  color: var(--gris-presse);
+}
+
+.statusCell {
+  text-align: center;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.125rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statusDraft {
+  background: var(--gris-leger);
+  color: var(--gris-presse);
+}
+
+.statusReady {
+  background: var(--sang);
+  color: var(--parchemin);
+}
+
+.actionsCell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Zone Inspector */
+.zoneInspector {
+  padding: 1.5rem;
+  background: var(--noir);
+  color: var(--parchemin);
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.inspectorEmpty {
+  padding: 2rem 1.5rem;
+  color: #999;
+  font-style: italic;
+  text-align: center;
+}
+
+.inspectorHeader {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 1rem;
+}
+
+.inspectorHeader h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+}
+
+.zoneType {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  gap: 0.5rem;
+}
+
+.modeToggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.formGroup textarea {
+  background: #222;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 0.25rem;
+}
+
+/* Newspaper Editor */
+.newspaperEditor {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f5f5f5;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: var(--noir);
+  color: var(--parchemin);
+  border-bottom: 2px solid var(--sang);
+}
+
+.editorTitle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.backLink {
+  color: var(--sang);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.editorTitle h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-family: var(--font-serif);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+.editorActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.saveIndicator {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.saveIndicator.saving {
+  color: #ffc107;
+}
+
+.saveIndicator.saved {
+  color: #4caf50;
+}
+
+.statusSelect {
+  padding: 0.4rem 0.75rem;
+  background: var(--noir);
+  color: var(--parchemin);
+  border: 1px solid #444;
+  border-radius: 0.25rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.editorBody {
+  display: flex;
+  flex: 1;
+  gap: 0;
+  overflow: hidden;
+}
+
+.editorSidebar {
+  background: #f9f9f9;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+}
+
+.leftSidebar {
+  width: 220px;
+  padding: 1.5rem 1rem;
+}
+
+.leftSidebar h3 {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.zonesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.zoneButton {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.zoneButton:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.zoneButton.active {
+  background: var(--sang);
+  color: white;
+  border-color: var(--sang);
+}
+
+.zoneBullet {
+  margin-right: 0.5rem;
+  opacity: 0.6;
+}
+
+.editorCanvas {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  overflow: auto;
+}
+
+.rightSidebar {
+  width: 320px;
+  border-left: 1px solid #ddd;
+}

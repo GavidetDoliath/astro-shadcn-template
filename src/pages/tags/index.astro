@@ -1,0 +1,189 @@
+---
+import { getAllTags } from '@/lib/articles';
+import Layout from '@/layouts/Layout.astro';
+
+const tags = await getAllTags();
+
+const meta = {
+  title: 'Tags · La Déraison',
+  description: 'Parcourir les articles par tag',
+};
+---
+
+<Layout {...meta}>
+  <section class="tags">
+    <div class="tags__inner">
+      <!-- Header -->
+      <header class="tags__header">
+        <h1 class="tags__title">Tags</h1>
+        <p class="tags__subtitle">Parcourir par sujet</p>
+      </header>
+
+      <!-- Rule -->
+      <div class="tags__rule" />
+
+      <!-- Tags Grid -->
+      {tags.length > 0 ? (
+        <div class="tags__grid">
+          {tags.map(tag => (
+            <a href={`/tags/${tag.name}`} class="tags__item">
+              <div class="tags__item-content">
+                <h2 class="tags__item-name">#{tag.name}</h2>
+                <p class="tags__item-count">{tag.count} article{tag.count !== 1 ? 's' : ''}</p>
+              </div>
+              <span class="tags__item-arrow">→</span>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div class="tags__empty">
+          <p>Aucun tag trouvé.</p>
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>
+
+<style lang="scss">
+  .tags {
+    min-height: 100vh;
+    background: var(--noir);
+    padding: clamp(2rem, 6vh, 4rem) clamp(1.5rem, 8vw, 8rem);
+
+    &::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      z-index: 0;
+    }
+  }
+
+  .tags__inner {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .tags__header {
+    margin-bottom: 3rem;
+  }
+
+  .tags__title {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    line-height: 0.95;
+    color: var(--parchemin);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .tags__subtitle {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: var(--beige-pali);
+    margin: 0;
+  }
+
+  .tags__rule {
+    width: 3rem;
+    height: 2px;
+    background: var(--sang);
+    margin-bottom: 3rem;
+  }
+
+  .tags__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+  }
+
+  .tags__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border: 1px solid rgb(139 37 0 / 0.2);
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.3s;
+    background: rgba(139 37 0 / 0.02);
+
+    &:hover {
+      border-color: rgb(139 37 0 / 0.4);
+      background: rgba(139 37 0 / 0.05);
+      transform: translateX(4px);
+
+      .tags__item-name {
+        color: var(--sang);
+      }
+
+      .tags__item-arrow {
+        color: var(--sang);
+        transform: translateX(4px);
+      }
+    }
+  }
+
+  .tags__item-content {
+    flex: 1;
+  }
+
+  .tags__item-name {
+    font-family: var(--font-serif);
+    font-weight: 900;
+    font-size: 1.3rem;
+    color: var(--parchemin);
+    margin: 0 0 0.5rem 0;
+    transition: color 0.3s;
+  }
+
+  .tags__item-count {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gris-presse);
+    margin: 0;
+  }
+
+  .tags__item-arrow {
+    font-size: 1.5rem;
+    color: var(--beige-pali);
+    transition: all 0.3s;
+    flex-shrink: 0;
+    margin-left: 1rem;
+  }
+
+  .tags__empty {
+    text-align: center;
+    padding: 3rem 1rem;
+
+    p {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      color: var(--beige-pali);
+      margin: 0;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .tags {
+      padding: 1.5rem 1rem;
+    }
+
+    .tags__title {
+      font-size: clamp(2rem, 5vw, 2.5rem);
+    }
+
+    .tags__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

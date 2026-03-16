@@ -1,5 +1,5 @@
 ---
-// src/components/ArticleCard.astro
+import { Image } from 'astro:assets';
 import type { Article } from '@/lib/articles';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 const { article, featured = false } = Astro.props;
 
 // Format date
-const date = new Date(article.date);
+const date = new Date(article.data.date);
 const formattedDate = date.toLocaleDateString('fr-FR', {
   day: 'numeric',
   month: 'short',
@@ -25,13 +25,14 @@ const categoryLabels = {
 };
 ---
 
-<article
-  class={`article-card ${featured ? 'article-card--featured' : ''}`}
-  data-featured={featured}
->
+<a href={`/lettres/${article.slug}`} class={`article-card ${featured ? 'article-card--featured' : ''}`}>
   <!-- Image -->
   <div class="article-card__image">
-    <img src={article.image} alt={article.title} loading="lazy" />
+    {article.data.image ? (
+      <Image src={article.data.image} alt={article.data.title} />
+    ) : (
+      <div style="width: 100%; height: 100%; background: var(--gris-presse);" />
+    )}
     <div class="article-card__overlay" />
   </div>
 
@@ -43,17 +44,17 @@ const categoryLabels = {
     </div>
 
     <!-- Title -->
-    <h3 class="article-card__title">{article.title}</h3>
+    <h3 class="article-card__title">{article.data.title}</h3>
 
     <!-- Excerpt -->
-    <p class="article-card__excerpt">{article.excerpt}</p>
+    <p class="article-card__excerpt">{article.data.excerpt}</p>
 
     <!-- Read more link -->
-    <a href={`/lettres/${article.slug}`} class="article-card__link">
+    <span class="article-card__link">
       Lire →
-    </a>
+    </span>
   </div>
-</article>
+</a>
 
 <style lang="scss">
   .article-card {
@@ -65,6 +66,9 @@ const categoryLabels = {
     display: flex;
     flex-direction: column;
     transition: transform 0.2s;
+    text-decoration: none;
+    color: inherit;
+    pointer-events: auto;
 
     &::after {
       content: '';
@@ -133,6 +137,7 @@ const categoryLabels = {
     overflow: hidden;
     background: var(--gris-presse);
     border-radius: 0.5rem 0.5rem 0 0;
+    pointer-events: none;
 
     img {
       width: 100%;
@@ -140,6 +145,7 @@ const categoryLabels = {
       object-fit: cover;
       object-position: center;
       transition: transform 0.3s ease;
+      pointer-events: none;
     }
 
     &:hover img {
@@ -162,6 +168,7 @@ const categoryLabels = {
     flex: 1;
     padding: clamp(1rem, 3vw, 1.5rem);
     justify-content: space-between;
+    pointer-events: none;
   }
 
   .article-card__meta {
@@ -225,14 +232,6 @@ const categoryLabels = {
     text-decoration: none;
     transition: color 0.2s ease, opacity 0.2s ease;
     align-self: flex-start;
-
-    /* Stretched link: rend toute la card cliquable */
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-    }
   }
 
   @media (max-width: 640px) {

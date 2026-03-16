@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -93,7 +93,7 @@
   --beige-pali: #52525b;
 
   /* Fonts - all pointing to Inter now */
-  --font-sans: "Architects Daughter", cursive;
+  --font-sans: "Space Grotesk", sans-serif;
   --font-serif: serif;
   --font-body: var(--font-sans);
   --font-mono: monospace;
@@ -163,7 +163,7 @@
   --gris-presse: oklch(0.2520 0 0);
   --beige-pali: oklch(0.7058 0 0);
 
-  --font-sans: "Architects Daughter", cursive;
+  --font-sans: "Space Grotesk", sans-serif;
   --font-serif: serif;
   --font-mono: monospace;
   --shadow-color: #F5F5F5;
@@ -232,7 +232,7 @@
 }
 
 @theme inline {
-  --font-sans: "Architects Daughter", cursive;
+  --font-sans: "Space Grotesk", sans-serif;
   --font-mono: monospace;
   --font-serif: serif;
   --radius: 0rem;
