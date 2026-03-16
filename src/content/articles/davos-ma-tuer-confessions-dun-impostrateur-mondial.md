@@ -1,11 +1,11 @@
 ---
-title: Untitled
-excerpt: ''
-date: '2026-03-01'
+title: "Davos m'a tuer : confessions d'un impostrateur mondial"
+excerpt: "J'étais en train d'éplucher une boîte de sardines avec les dents tout en dictant une assignation au JAF quand l'invitation tomba. Une missive digitale, parfumée au néant, signée « WEF Protocol Office », avec un fichier PDF intitulé « You are the future »."
+date: '2026-03-08'
 category: lettre
 tags: []
 author: François Vannesson
-image: ''
+image: ../../assets/articles/davos-ma-tuer-confessions-dun-impostrateur-mondial.png
 featured: false
 ---
 

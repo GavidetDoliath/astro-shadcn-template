@@ -1,11 +1,11 @@
 ---
-title: Untitled
-excerpt: ''
-date: '2026-03-01'
+title: Vous confondez cohérence et soumission, nous non
+excerpt: "Ils sont là. Alignés comme des cierges trempés dans la vaseline, veillant pieusement sur la pureté morale du monde médiatique, à condition que cette pureté suinte l'eau tiède, le tofu tiède, l'indignation tiède."
+date: '2026-02-09'
 category: lettre
 tags: []
 author: François Vannesson
-image: ''
+image: ../../assets/articles/vous-confondez-coherence-et-soumission-nous-non.png
 featured: false
 ---
 
