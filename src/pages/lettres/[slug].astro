@@ -1,13 +1,11 @@
 ---
-// src/pages/lettres/[slug].astro
-// Page article détaillée avec ToC, reading time, etc.
-
-import { supabase } from '@/db/supabase';
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import { getArticles, getArticlesByCategory, getArticleBySlug } from '@/lib/articles';
 import Layout from '@/layouts/Layout.astro';
 
 export async function getStaticPaths() {
-  const articles = await getArticles();
+  const articles = await getCollection('articles');
   return articles.map(article => ({
     params: { slug: article.slug },
   }));
@@ -23,8 +21,11 @@ if (!article) {
   return Astro.response.write('Not found', { status: 404 });
 }
 
+// Récupère le contenu rendu
+const { Content } = await article.render();
+
 // Récupère articles similaires (même catégorie, sauf celui-ci)
-const relatedArticles = await getArticlesByCategory(article.category);
+const relatedArticles = await getArticlesByCategory(article.data.category);
 const filtered = relatedArticles
   .filter(a => a.slug !== article.slug)
   .slice(0, 3);
@@ -35,56 +36,17 @@ const index = allArticles.findIndex(a => a.slug === article.slug);
 const prevArticle = index > 0 ? allArticles[index - 1] : null;
 const nextArticle = index < allArticles.length - 1 ? allArticles[index + 1] : null;
 
-// Génère table of contents basée sur le contenu
-const generateToc = (content: string | undefined) => {
-  if (!content) return [];
-  const headingRegex = /<h[2-3]>(.*?)<\/h[2-3]>/g;
-  const headings = [];
-  let match;
-
-  while ((match = headingRegex.exec(content)) !== null) {
-    const id = match[1]
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    headings.push({
-      text: match[1].replace(/<[^>]+>/g, ''),
-      id: id,
-      level: parseInt(match[0][2]),
-    });
-  }
-
-  return headings;
-};
-
-// Estime le temps de lecture
+// Estime le temps de lecture basé sur l'excerpt
 const calculateReadingTime = (text: string | undefined) => {
   if (!text) return 5;
   const words = text.replace(/<[^>]+>/g, '').split(/\s+/).length;
   return Math.ceil(words / 200); // 200 words/min
 };
 
-// Format categories
-const categoryLabels = {
-  lettre: '📝 Lettre',
-  pamphlet: '📢 Pamphlet',
-  fosse: '🕳️ La Fosse',
-};
-
-// Contenu HTML (à remplacer par contenu réel depuis Supabase)
-const contentHtml =
-  article.content ||
-  `<p>${article.excerpt}</p>
-<p>Contenu complet de l'article à ajouter dans Supabase.</p>`;
-
-const toc = generateToc(contentHtml);
-const readingTime = calculateReadingTime(contentHtml);
+const readingTime = calculateReadingTime(article.data.excerpt);
 
 // Format date
-const date = new Date(article.date);
+const date = new Date(article.data.date);
 const formattedDate = date.toLocaleDateString('fr-FR', {
   day: 'numeric',
   month: 'long',
@@ -92,8 +54,9 @@ const formattedDate = date.toLocaleDateString('fr-FR', {
 });
 
 const meta = {
-  title: `${article.title} · La Déraison`,
-  description: article.excerpt,
+  title: `${article.data.title} · La Déraison`,
+  description: article.data.excerpt,
+  ogImage: article.data.image,
 };
 ---
 
@@ -105,27 +68,24 @@ const meta = {
       <span>/</span>
       <a href="/lettres">Les Lettres</a>
       <span>/</span>
-      <span>{article.title}</span>
+      <span>{article.data.title}</span>
     </nav>
 
     <!-- Header -->
     <header class="article__header">
       <div class="article__meta-top">
+        <a href={`/categories/${article.data.category}`} class="article__category">
+          {article.data.category}
+        </a>
         <span class="article__date">{formattedDate}</span>
         <span class="article__reading-time">{readingTime} min de lecture</span>
       </div>
 
-      <h1 class="article__title">{article.title}</h1>
+      <h1 class="article__title">{article.data.title}</h1>
 
       <div class="article__meta-bottom">
-        <span class="article__author">Par {article.author}</span>
+        {article.data.author && <span class="article__author">Par {article.data.author}</span>}
       </div>
-
-      {article.linkedinUrl && (
-        <a href={article.linkedinUrl} class="article__source" target="_blank" rel="noopener">
-          → Lire sur LinkedIn
-        </a>
-      )}
     </header>
 
     <!-- Rule -->
@@ -135,57 +95,53 @@ const meta = {
     <div class="article__grid">
       <!-- Main Content -->
       <main class="article__main">
-        <div class="article__content" set:html={contentHtml} />
+        <div class="article__content">
+          <Content />
+        </div>
 
         <!-- Meta Footer -->
         <footer class="article__footer">
+          {article.data.tags && article.data.tags.length > 0 && (
+            <div class="article__tags">
+              {article.data.tags.map(tag => (
+                <a href={`/tags/${tag}`} class="article__tag">
+                  #{tag}
+                </a>
+              ))}
+            </div>
+          )}
         </footer>
       </main>
 
-      <!-- Sidebar: Table of Contents -->
-      {toc.length > 0 && (
+      <!-- Sidebar: Related Articles -->
+      {filtered.length > 0 && (
         <aside class="article__sidebar">
-          <nav class="article__toc">
-            <h3 class="article__toc-title">Sur cette page</h3>
-            <ul class="article__toc-list">
-              {toc.map(heading => (
-                <li
-                  class={`article__toc-item article__toc-item--level${heading.level}`}
-                >
-                  <a href={`#${heading.id}`}>{heading.text}</a>
+          <!-- Related Articles -->
+          <div class="article__related">
+            <h3 class="article__related-title">Articles similaires</h3>
+            <ul class="article__related-list">
+              {filtered.map(related => (
+                <li class="article__related-item">
+                  <a href={`/lettres/${related.slug}`} class="article__related-link">
+                    {related.data.title}
+                  </a>
+                  <span class="article__related-date">
+                    {new Date(related.data.date).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'short',
+                    })}
+                  </span>
                 </li>
               ))}
             </ul>
-          </nav>
-
-          <!-- Related Articles -->
-          {filtered.length > 0 && (
-            <div class="article__related">
-              <h3 class="article__related-title">Articles similaires</h3>
-              <ul class="article__related-list">
-                {filtered.map(related => (
-                  <li class="article__related-item">
-                    <a href={`/lettres/${related.slug}`} class="article__related-link">
-                      {related.title}
-                    </a>
-                    <span class="article__related-date">
-                      {new Date(related.date).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          </div>
 
           <!-- Social Share -->
           <div class="article__share">
             <h3 class="article__share-title">Partager</h3>
             <div class="article__share-buttons">
               <a
-                href={`https://twitter.com/intent/tweet?url=${Astro.url}&text=${article.title}`}
+                href={`https://twitter.com/intent/tweet?url=${Astro.url}&text=${article.data.title}`}
                 class="article__share-btn article__share-btn--twitter"
                 target="_blank"
                 rel="noopener"
@@ -201,7 +157,7 @@ const meta = {
                 LinkedIn
               </a>
               <a
-                href={`mailto:?subject=${article.title}&body=${article.url}`}
+                href={`mailto:?subject=${article.data.title}&body=${Astro.url}`}
                 class="article__share-btn article__share-btn--email"
               >
                 Email
@@ -218,7 +174,7 @@ const meta = {
         {prevArticle && (
           <a href={`/lettres/${prevArticle.slug}`} class="article__nav-link">
             <span class="article__nav-label">← Précédent</span>
-            <span class="article__nav-title">{prevArticle.title}</span>
+            <span class="article__nav-title">{prevArticle.data.title}</span>
           </a>
         )}
       </div>
@@ -229,7 +185,7 @@ const meta = {
         {nextArticle && (
           <a href={`/lettres/${nextArticle.slug}`} class="article__nav-link article__nav-link--next">
             <span class="article__nav-label">Suivant →</span>
-            <span class="article__nav-title">{nextArticle.title}</span>
+            <span class="article__nav-title">{nextArticle.data.title}</span>
           </a>
         )}
       </div>

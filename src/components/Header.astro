@@ -14,7 +14,9 @@ import ThemeToggle from '@/components/ThemeToggle';
     <nav class='header__nav' aria-label='Navigation principale'>
       <ul class='header__nav-links'>
         <li><a href='/lettres'>Les Lettres</a></li>
-        <li><a href='/abonnement'>La Fosse</a></li>
+        <li>
+          <a href='/abonnement'>La Fosse <span>(abonnez-vous bordel)</span></a>
+        </li>
       </ul>
     </nav>
 
@@ -33,7 +35,9 @@ import ThemeToggle from '@/components/ThemeToggle';
   <div class='header__mobile-menu' id='mobile-menu' aria-hidden='true'>
     <ul>
       <li><a href='/lettres'>Les Lettres</a></li>
-      <li><a href='/abonnement'>La Fosse</a></li>
+      <li>
+        <a href='/abonnement'>La Fosse <span>(abonnez-vous bordel)</span></a>
+      </li>
     </ul>
   </div>
 </header>
@@ -66,6 +70,7 @@ import ThemeToggle from '@/components/ThemeToggle';
       padding: 0 2rem;
 
       @media (max-width: 640px) {
+        grid-template-columns: 1fr auto;
         padding: 0 1rem;
       }
     }
@@ -102,6 +107,12 @@ import ThemeToggle from '@/components/ThemeToggle';
       margin: 0;
       padding: 0;
 
+      li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
       a {
         font-family: var(--font-mono);
         font-size: 0.65rem;
@@ -114,6 +125,23 @@ import ThemeToggle from '@/components/ThemeToggle';
         transition: border-color 0.2s;
 
         &:hover { border-bottom-color: var(--sang); }
+      }
+    }
+
+    &__cta-btn {
+      color: var(--sang) !important;
+      border: 1px solid var(--sang) !important;
+      padding: 0.25rem 0.5rem !important;
+      border-radius: 2px;
+      font-size: 0.55rem !important;
+      letter-spacing: 0.15em !important;
+      border-bottom: 1px solid var(--sang) !important;
+      transition: all 0.2s;
+
+      &:hover {
+        background: var(--sang);
+        color: var(--noir) !important;
+        border-color: var(--sang) !important;
       }
     }
 
@@ -167,7 +195,7 @@ import ThemeToggle from '@/components/ThemeToggle';
         transition: max-height 0.3s ease;
 
         &.is-open {
-          max-height: 200px;
+          max-height: 300px;
         }
       }
 
@@ -178,6 +206,12 @@ import ThemeToggle from '@/components/ThemeToggle';
         display: flex;
         flex-direction: column;
         gap: 1rem;
+
+        li {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
       }
 
       a {
@@ -190,6 +224,23 @@ import ThemeToggle from '@/components/ThemeToggle';
         text-decoration: none;
 
         &:hover { color: var(--sang); }
+      }
+
+      .header__cta-btn {
+        color: var(--sang) !important;
+        border: 1px solid var(--sang) !important;
+        padding: 0.25rem 0.5rem !important;
+        border-radius: 2px;
+        font-size: 0.55rem !important;
+        letter-spacing: 0.15em !important;
+        display: inline-block;
+        transition: all 0.2s;
+
+        &:hover {
+          background: var(--sang);
+          color: var(--noir) !important;
+          border-color: var(--sang) !important;
+        }
       }
     }
   }

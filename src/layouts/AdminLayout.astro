@@ -4,7 +4,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 
 interface Props {
   title: string;
-  activeNav?: 'articles' | 'journals';
+  activeNav?: 'articles' | 'journals' | 'newspapers';
 }
 
 const { title, activeNav } = Astro.props;
@@ -39,6 +39,7 @@ const { title, activeNav } = Astro.props;
         <div class="admin-nav__links">
           <a href="/admin" class={activeNav === 'articles' ? 'admin-nav__active' : ''}>Articles</a>
           <a href="/admin/journals" class={activeNav === 'journals' ? 'admin-nav__active' : ''}>Journaux</a>
+          <a href="/admin/newspapers" class={activeNav === 'newspapers' ? 'admin-nav__active' : ''}>Éditions</a>
           <a href="/">← Site</a>
           <ThemeToggle client:load />
           <form method="POST" action="/api/admin/auth/logout" style="display:inline">

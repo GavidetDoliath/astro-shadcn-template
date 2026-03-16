@@ -1,95 +1,117 @@
-// src/lib/articles.ts
-import { supabase } from '@/lib/supabase';
+import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
 
-export interface Article {
-  id: string;
-  title: string;
-  excerpt: string;
-  date: string;
-  category: 'lettre' | 'pamphlet' | 'fosse';
-  image: string;
-  slug: string;
-  author?: string;
-  linkedinUrl?: string;
-  featured?: boolean;
-  published?: boolean;
+export type Article = CollectionEntry<'articles'>;
+
+interface CategoryInfo {
+  name: string;
+  count: number;
+}
+
+interface TagInfo {
+  name: string;
+  count: number;
 }
 
 /**
- * Récupère les articles depuis Supabase
+ * Récupère tous les articles, triés par date ou featured
  * @param limit - Nombre d'articles à retourner
- * @param sortBy - Tri ('recent' par défaut)
+ * @param sortBy - Tri ('recent' par défaut ou 'featured')
  */
-export async function getArticles(limit?: number, sortBy: 'recent' | 'featured' = 'recent'): Promise<Article[]> {
-  let query = supabase
-    .from('articles')
-    .select('*')
-    .eq('published', true);
+export async function getArticles(
+  limit?: number,
+  sortBy: 'recent' | 'featured' = 'recent',
+): Promise<Article[]> {
+  let articles = await getCollection('articles');
 
-  // Tri par featured ou date
+  // Trier par featured ou date
   if (sortBy === 'featured') {
-    query = query.order('featured', { ascending: false }).order('date', { ascending: false });
+    articles = articles.sort((a, b) => {
+      if (b.data.featured !== a.data.featured) {
+        return (b.data.featured ? 1 : 0) - (a.data.featured ? 1 : 0);
+      }
+      return new Date(b.data.date).getTime() - new Date(a.data.date).getTime();
+    });
   } else {
-    query = query.order('date', { ascending: false });
+    articles = articles.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
   }
 
   if (limit) {
-    query = query.limit(limit);
+    articles = articles.slice(0, limit);
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Supabase error (getArticles):', error);
-    return [];
-  }
-
-  return (data || []) as Article[];
+  return articles;
 }
 
 /**
  * Récupère un article par slug
  */
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
-  const { data, error } = await supabase
-    .from('articles')
-    .select('*')
-    .eq('slug', slug)
-    .eq('published', true)
-    .single();
-
-  if (error) {
-    console.error('Supabase error (getArticleBySlug):', error);
-    return undefined;
-  }
-
-  return data as Article;
+  return getEntry('articles', slug);
 }
 
 /**
- * Récupère les articles par catégorie
+ * Récupère les articles d'une catégorie
  */
-export async function getArticlesByCategory(
-  category: 'lettre' | 'pamphlet' | 'fosse',
-  limit?: number,
-): Promise<Article[]> {
-  let query = supabase
-    .from('articles')
-    .select('*')
-    .eq('category', category)
-    .eq('published', true)
-    .order('date', { ascending: false });
+export async function getArticlesByCategory(category: string, limit?: number): Promise<Article[]> {
+  const articles = await getCollection('articles');
+  let filtered = articles.filter((a) => a.data.category === category);
+
+  filtered = filtered.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
 
   if (limit) {
-    query = query.limit(limit);
+    filtered = filtered.slice(0, limit);
   }
 
-  const { data, error } = await query;
+  return filtered;
+}
 
-  if (error) {
-    console.error('Supabase error (getArticlesByCategory):', error);
-    return [];
+/**
+ * Récupère les articles d'un tag
+ */
+export async function getArticlesByTag(tag: string, limit?: number): Promise<Article[]> {
+  const articles = await getCollection('articles');
+  let filtered = articles.filter((a) => a.data.tags.includes(tag));
+
+  filtered = filtered.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+
+  if (limit) {
+    filtered = filtered.slice(0, limit);
   }
 
-  return (data || []) as Article[];
+  return filtered;
+}
+
+/**
+ * Retourne toutes les catégories uniques avec leur nombre d'articles
+ */
+export async function getCategories(): Promise<CategoryInfo[]> {
+  const articles = await getCollection('articles');
+  const categories = new Map<string, number>();
+
+  articles.forEach((article) => {
+    const category = article.data.category;
+    categories.set(category, (categories.get(category) || 0) + 1);
+  });
+
+  return Array.from(categories.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * Retourne tous les tags uniques avec leur nombre d'articles
+ */
+export async function getAllTags(): Promise<TagInfo[]> {
+  const articles = await getCollection('articles');
+  const tags = new Map<string, number>();
+
+  articles.forEach((article) => {
+    article.data.tags.forEach((tag) => {
+      tags.set(tag, (tags.get(tag) || 0) + 1);
+    });
+  });
+
+  return Array.from(tags.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
 }
